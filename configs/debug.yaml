@@ -1,28 +1,20 @@
-experiment_name: debug_run
+experiment_name: debug_vit
 seed: 42
 
 model:
-  name: vit_base_patch16_224
+  name: deit_tiny_patch16_224
   num_classes: 100
-  pretrained: false
+  pretrained: true
 
 training:
-  batch_size: 4
+  batch_size: 2
   epochs: 1
   learning_rate: 0.0001
   weight_decay: 0.0001
 
 data:
   dataset_name: cifar100
+  data_dir: ./data
   image_size: 224
-  num_workers: 1
-
-logging:
-  use_wandb: false
-  project: dynamic-pruning-thesis
-  entity: null
-
-system:
-  device: auto
-  output_dir: outputs
-  
+  num_workers: 0
+  debug_subset: 32

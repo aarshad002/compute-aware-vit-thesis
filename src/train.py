@@ -1,59 +1,84 @@
 import argparse
-import sys
-from pathlib import Path
-
+import os
+import json
 import torch
+import torch.nn as nn
+import torch.optim as optim
 
-# Make sure the project root is on the Python path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.utils.config import load_config
-from src.utils.seed import set_seed
-from src.utils.logger import create_output_dir
-
-
-def get_device(device_setting: str) -> str:
-    """
-    Decide which device to use.
-    """
-    if device_setting == "cpu":
-        return "cpu"
-    if device_setting == "cuda":
-        return "cuda" if torch.cuda.is_available() else "cpu"
-    return "cuda" if torch.cuda.is_available() else "cpu"
+from utils.config import load_config
+from utils.seed import set_seed
+from utils.logger import create_output_dir
+from models.vit import build_model
+from datasets.cifar import build_dataloaders
+from training.engine import train_one_epoch, validate_one_epoch
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Dummy training entry point for thesis experiments.")
-    parser.add_argument("--config", type=str, required=True, help="Path to YAML config file")
-    args = parser.parse_args()
+def main(config_path):
+    config = load_config(config_path)
 
-    config = load_config(args.config)
+    set_seed(config.get("seed", 42))
 
-    experiment_name = config["experiment_name"]
-    seed = config["seed"]
-    output_base = config["system"]["output_dir"]
-    device_setting = config["system"]["device"]
-
-    set_seed(seed)
-    device = get_device(device_setting)
-    output_dir = create_output_dir(output_base, experiment_name)
-
-    print(f"Experiment: {experiment_name}")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
+
+    output_dir = create_output_dir(
+        base_dir="outputs",
+        experiment_name=config["experiment_name"]
+    )
     print(f"Outputs will be saved to: {output_dir}")
 
+    train_loader, val_loader = build_dataloaders(config)
+
+    model = build_model(config).to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=config["training"]["learning_rate"],
+        weight_decay=config["training"]["weight_decay"]
+    )
+
     epochs = config["training"]["epochs"]
+    history = []
 
-    for epoch in range(1, epochs + 1):
-        loss = 1.0 / epoch
-        acc = 50.0 + (epoch - 1) * 10.0
-        print(f"Epoch {epoch}/{epochs} | loss={loss:.4f} | acc={acc:.2f}")
+    best_val_acc = -1.0
 
-    print("Dummy training run completed successfully.")
+    for epoch in range(epochs):
+        train_loss, train_acc = train_one_epoch(
+            model, train_loader, criterion, optimizer, device
+        )
+        val_loss, val_acc = validate_one_epoch(
+            model, val_loader, criterion, device
+        )
+
+        print(
+            f"Epoch [{epoch+1}/{epochs}] "
+            f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
+            f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}"
+        )
+
+        history.append({
+            "epoch": epoch + 1,
+            "train_loss": train_loss,
+            "train_acc": train_acc,
+            "val_loss": val_loss,
+            "val_acc": val_acc,
+        })
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            torch.save(model.state_dict(), os.path.join(output_dir, "best_model.pt"))
+
+    torch.save(model.state_dict(), output_dir / "last_model.pt")
+
+    with open(os.path.join(output_dir, "metrics.json"), "w") as f:
+        json.dump(history, f, indent=2)
+
+    print(f"Best validation accuracy: {best_val_acc:.4f}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True)
+    args = parser.parse_args()
+    main(args.config)

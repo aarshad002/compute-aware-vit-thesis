@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# datasets
+data/
+
 # Conda environments
 .env
 .venv/
