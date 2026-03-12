@@ -1,0 +1,10 @@
+model:
+  type: static
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+pruning:
+  prune_layer: 6
+  keep_tokens: 128
+  score_method: l2
