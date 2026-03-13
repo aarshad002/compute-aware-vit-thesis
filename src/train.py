@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from utils import config
 from utils.config import load_config
 from utils.seed import set_seed
 from utils.logger import create_output_dir
@@ -101,6 +102,19 @@ def main(config_path):
         "best_val_acc": best_val_acc,
         "epochs": history,
 }
+    
+    # add pruning metadata if pruning exists in config
+    if "pruning" in config:
+
+        prune_cfg = config["pruning"]
+
+        metrics["pruning"] = {
+            "enabled": True,
+            "prune_layer": prune_cfg.get("prune_layer"),
+            "patch_tokens_before_prune": 196,
+            "patch_tokens_kept": prune_cfg.get("keep_tokens"),
+            "total_tokens_after_prune": prune_cfg.get("keep_tokens") + 1  # +1 for CLS
+        }
 
     with open(output_dir / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
