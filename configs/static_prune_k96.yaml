@@ -1,0 +1,25 @@
+experiment_name: static_prune_k96
+seed: 42
+
+model:
+  type: static
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+
+data:
+  dataset_name: cifar100
+  data_dir: ./data
+  image_size: 224
+  num_workers: 2
+
+pruning:
+  prune_layer: 6
+  keep_tokens: 96
+  score_method: l2
