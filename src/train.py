@@ -1,12 +1,10 @@
 import argparse
-import os
 import json
-from xml.parsers.expat import model
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from utils import config
 from utils.config import load_config
 from utils.seed import set_seed
 from utils.logger import create_output_dir
@@ -14,6 +12,7 @@ from models.vit import build_model
 from datasets.cifar import build_dataloaders
 from training.engine import train_one_epoch, validate_one_epoch
 from fvcore.nn import FlopCountAnalysis
+
 
 def compute_model_stats(model, device, image_size=224):
     model.eval()
@@ -29,6 +28,35 @@ def compute_model_stats(model, device, image_size=224):
     print(f"FLOPs per image: {total_flops / 1e9:.2f} GFLOPs")
 
     return params, total_flops
+
+
+def measure_latency(model, dataloader, device):
+    model.eval()
+    total_time = 0.0
+    total_samples = 0
+
+    with torch.no_grad():
+        for images, _ in dataloader:
+            images = images.to(device)
+
+            if device == "cuda":
+                torch.cuda.synchronize()
+            start = time.time()
+
+            _ = model(images)
+
+            if device == "cuda":
+                torch.cuda.synchronize()
+            end = time.time()
+
+            total_time += (end - start)
+            total_samples += images.size(0)
+
+    latency = total_time / total_samples
+    throughput = total_samples / total_time
+
+    return latency, throughput
+
 
 def main(config_path):
     config = load_config(config_path)
@@ -88,8 +116,17 @@ def main(config_path):
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             torch.save(model.state_dict(), output_dir / "best_model.pt")
-    
+
     torch.save(model.state_dict(), output_dir / "last_model.pt")
+
+    # Load best model before latency measurement
+    model.load_state_dict(torch.load(output_dir / "best_model.pt", map_location=device))
+    model = model.to(device)
+
+    latency, throughput = measure_latency(model, val_loader, device)
+
+    print(f"Latency (sec/sample): {latency:.6f}")
+    print(f"Throughput (samples/sec): {throughput:.2f}")
 
     metrics = {
         "model_name": config["model"]["name"],
@@ -97,15 +134,15 @@ def main(config_path):
         "image_size": image_size,
         "parameters": params,
         "parameters_millions": round(params / 1e6, 4),
-        "flops": total_flops if False else flops,
+        "flops": flops,
         "flops_giga": round(flops / 1e9, 4),
         "best_val_acc": best_val_acc,
+        "latency": latency,
+        "throughput": throughput,
         "epochs": history,
-}
-    
-    # add pruning metadata if pruning exists in config
-    if "pruning" in config:
+    }
 
+    if "pruning" in config:
         prune_cfg = config["pruning"]
 
         metrics["pruning"] = {
@@ -113,11 +150,12 @@ def main(config_path):
             "prune_layer": prune_cfg.get("prune_layer"),
             "patch_tokens_before_prune": 196,
             "patch_tokens_kept": prune_cfg.get("keep_tokens"),
-            "total_tokens_after_prune": prune_cfg.get("keep_tokens") + 1  # +1 for CLS
+            "total_tokens_after_prune": prune_cfg.get("keep_tokens") + 1
         }
 
     with open(output_dir / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
+
     print(f"Best validation accuracy: {best_val_acc:.4f}")
 
 
