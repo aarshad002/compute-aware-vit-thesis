@@ -39,6 +39,30 @@ class DynamicPrunedViT(nn.Module):
         else:
             raise ValueError(f"Unsupported score method: {self.score_method}")
 
+    def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
+        """
+        patch_tokens: (B, N, D)
+        token_scores: (B, N)
+        keep_ratio: float, e.g. 0.5
+
+        returns:
+            selected_tokens: (B, K, D)
+            selected_scores: (B, K)
+            selected_indices: (B, K)
+        """
+        B, N, D = patch_tokens.shape
+        K = max(1, int(N * keep_ratio))
+
+        selected_scores, selected_indices = torch.topk(
+            token_scores, k=K, dim=1, largest=True, sorted=True
+        )
+
+        gather_indices = selected_indices.unsqueeze(-1).expand(-1, -1, D)
+        selected_tokens = torch.gather(patch_tokens, dim=1, index=gather_indices)
+
+        return selected_tokens, selected_scores, selected_indices
+        
+    
     def forward(self, x):
         # Patch embedding
         x = self.backbone.patch_embed(x)   # (B, N, D)
@@ -70,12 +94,26 @@ class DynamicPrunedViT(nn.Module):
         print("patch_tokens shape:", patch_tokens.shape)
         print("token_scores shape:", token_scores.shape)
 
-        # Temporary: stop here and return debugging info
+            # Temporary fixed ratio for testing
+        keep_ratio = 0.5
+
+        selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
+            patch_tokens, token_scores, keep_ratio
+        )
+
+        print("selected_tokens shape:", selected_tokens.shape)
+        print("selected_scores shape:", selected_scores.shape)
+        print("selected_indices shape:", selected_indices.shape)
+
         return {
             "cls_token": cls_token,
             "patch_tokens": patch_tokens,
             "token_scores": token_scores,
+            "selected_tokens": selected_tokens,
+            "selected_scores": selected_scores,
+            "selected_indices": selected_indices,
         }
+        
 
 def build_dynamic_model(config):
     return DynamicPrunedViT(config)
