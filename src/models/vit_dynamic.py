@@ -62,8 +62,35 @@ class DynamicPrunedViT(nn.Module):
         selected_tokens = torch.gather(patch_tokens, dim=1, index=gather_indices)
 
         return selected_tokens, selected_scores, selected_indices
-        
     
+    
+    def compute_controller_features(self, token_scores):
+        """
+        token_scores: (B, N)
+
+        returns:
+            features: (B, F)
+        """
+        mean_score = token_scores.mean(dim=1, keepdim=True)
+        std_score = token_scores.std(dim=1, keepdim=True)
+        max_score = token_scores.max(dim=1, keepdim=True).values
+        min_score = token_scores.min(dim=1, keepdim=True).values
+
+        top2_scores, _ = torch.topk(token_scores, k=2, dim=1)
+        top1 = top2_scores[:, 0:1]
+        top2 = top2_scores[:, 1:2]
+        margin = top1 - top2
+
+        probs = torch.softmax(token_scores, dim=1)
+        entropy = -(probs * torch.log(probs + 1e-8)).sum(dim=1, keepdim=True)
+
+        features = torch.cat(
+            [mean_score, std_score, max_score, min_score, top1, top2, margin, entropy],
+            dim=1,
+        )
+
+        return features   
+        
     def forward(self, x):
         # Patch embedding
         x = self.backbone.patch_embed(x)   # (B, N, D)
@@ -90,6 +117,10 @@ class DynamicPrunedViT(nn.Module):
         # Compute token scores
         token_scores = self.compute_token_scores(patch_tokens)   # (B, N)
 
+        # Compute controller features (for future use in adaptive pruning)
+        controller_features = self.compute_controller_features(token_scores)
+        print("controller_features shape:", controller_features.shape)
+        
         # Temporary fixed ratio for testing
         keep_ratio = self.keep_ratio
 
