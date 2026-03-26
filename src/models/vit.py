@@ -1,5 +1,6 @@
 import timm
 from models.vit_static import build_static_model
+from models.vit_dynamic import build_dynamic_model
 
 
 def build_model(config):
@@ -19,6 +20,9 @@ def build_model(config):
 
     elif model_type == "static":
         return build_static_model(config)
+
+    elif model_type == "dynamic":
+        return build_dynamic_model(config)
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
