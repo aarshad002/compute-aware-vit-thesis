@@ -67,14 +67,17 @@ class DynamicPrunedViT(nn.Module):
             budget_logits: (B, num_budgets)
             budget_indices: (B,)
         """
-        budget_logits = self.controller(controller_features)          # (B, 4)
-        budget_indices = torch.argmax(budget_logits, dim=1)          # (B,)
+        budget_logits = self.controller(controller_features)   # (B, 4)
+        budget_indices = torch.argmax(budget_logits, dim=1)    # (B,)
 
-        # temporary: use first sample's decision for debugging
+        if controller_features.size(0) != 1:
+            raise ValueError(
+                "Current dynamic prototype supports only batch_size=1 "
+                "because each sample may choose a different token budget."
+            )
+
         keep_ratio = self.budget_options[budget_indices[0].item()]
-
         return keep_ratio, budget_logits, budget_indices
-    
     def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
         """
         patch_tokens: (B, N, D)
