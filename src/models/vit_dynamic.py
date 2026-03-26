@@ -66,7 +66,6 @@ class DynamicPrunedViT(nn.Module):
     def forward(self, x):
         # Patch embedding
         x = self.backbone.patch_embed(x)   # (B, N, D)
-
         B, N, D = x.shape
 
         # Add CLS token
@@ -90,30 +89,31 @@ class DynamicPrunedViT(nn.Module):
         # Compute token scores
         token_scores = self.compute_token_scores(patch_tokens)   # (B, N)
 
-        print("cls_token shape:", cls_token.shape)
-        print("patch_tokens shape:", patch_tokens.shape)
-        print("token_scores shape:", token_scores.shape)
-
-            # Temporary fixed ratio for testing
+        # Temporary fixed ratio for testing
         keep_ratio = 0.5
 
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio
         )
 
-        print("selected_tokens shape:", selected_tokens.shape)
-        print("selected_scores shape:", selected_scores.shape)
-        print("selected_indices shape:", selected_indices.shape)
+        # Rebuild reduced sequence: CLS + selected patch tokens
+        x = torch.cat((cls_token, selected_tokens), dim=1)   # (B, 1+K, D)
 
-        return {
-            "cls_token": cls_token,
-            "patch_tokens": patch_tokens,
-            "token_scores": token_scores,
-            "selected_tokens": selected_tokens,
-            "selected_scores": selected_scores,
-            "selected_indices": selected_indices,
-        }
-        
+        # Continue remaining transformer blocks
+        for i, blk in enumerate(self.backbone.blocks):
+            if i + 1 > self.prune_layer:
+                x = blk(x)
+
+        # Final norm
+        x = self.backbone.norm(x)
+
+        # CLS token for classification
+        cls_output = x[:, 0]   # (B, D)
+
+        # Classifier head
+        logits = self.backbone.head(cls_output)   # (B, num_classes)
+
+        return logits
 
 def build_dynamic_model(config):
     return DynamicPrunedViT(config)
