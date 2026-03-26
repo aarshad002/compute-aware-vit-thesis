@@ -1,2 +1,14 @@
+experiment_name: dynamic_prune_debug
+
 model:
   type: dynamic
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+pruning:
+  prune_layer: 6
+  score_method: l2
+
+controller:
+  budget_options: [0.25, 0.50, 0.75, 1.0]
