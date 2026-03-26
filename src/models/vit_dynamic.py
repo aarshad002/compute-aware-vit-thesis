@@ -2,6 +2,18 @@ import timm
 import torch
 import torch.nn as nn
 
+class BudgetController(nn.Module):
+    def __init__(self, input_dim=8, hidden_dim=32, num_budgets=4):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, num_budgets)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
 
 class DynamicPrunedViT(nn.Module):
     def __init__(self, config):
@@ -22,7 +34,13 @@ class DynamicPrunedViT(nn.Module):
         self.budget_options = controller_cfg.get(
             "budget_options", [0.25, 0.50, 0.75, 1.0]
         )
-
+        
+        self.controller = BudgetController(
+            input_dim=8,
+            hidden_dim=32,
+            num_budgets=len(self.budget_options)
+        )
+        
         self.backbone = timm.create_model(
             self.model_name,
             pretrained=self.pretrained,
@@ -40,6 +58,23 @@ class DynamicPrunedViT(nn.Module):
         else:
             raise ValueError(f"Unsupported score method: {self.score_method}")
 
+    def predict_keep_ratio(self, controller_features):
+        """
+        controller_features: (B, 8)
+
+        returns:
+            keep_ratio: float
+            budget_logits: (B, num_budgets)
+            budget_indices: (B,)
+        """
+        budget_logits = self.controller(controller_features)          # (B, 4)
+        budget_indices = torch.argmax(budget_logits, dim=1)          # (B,)
+
+        # temporary: use first sample's decision for debugging
+        keep_ratio = self.budget_options[budget_indices[0].item()]
+
+        return keep_ratio, budget_logits, budget_indices
+    
     def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
         """
         patch_tokens: (B, N, D)
@@ -119,11 +154,14 @@ class DynamicPrunedViT(nn.Module):
 
         # Compute controller features (for future use in adaptive pruning)
         controller_features = self.compute_controller_features(token_scores)
-        print("controller_features shape:", controller_features.shape)
-        
-        # Temporary fixed ratio for testing
-        keep_ratio = self.keep_ratio
+        keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
 
+        print("controller_features shape:", controller_features.shape)
+        print("budget_logits shape:", budget_logits.shape)
+        print("budget_indices shape:", budget_indices.shape)
+        print("predicted keep_ratio:", keep_ratio)
+        
+        
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio
         )
