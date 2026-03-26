@@ -9,6 +9,7 @@ model:
 pruning:
   prune_layer: 6
   score_method: l2
+  keep_ratio: 0.5
 
 controller:
   budget_options: [0.25, 0.50, 0.75, 1.0]

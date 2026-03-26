@@ -17,7 +17,8 @@ class DynamicPrunedViT(nn.Module):
 
         self.prune_layer = pruning_cfg.get("prune_layer", 6)
         self.score_method = pruning_cfg.get("score_method", "l2")
-
+        self.keep_ratio = pruning_cfg.get("keep_ratio", 0.5)
+        
         self.budget_options = controller_cfg.get(
             "budget_options", [0.25, 0.50, 0.75, 1.0]
         )
@@ -90,7 +91,7 @@ class DynamicPrunedViT(nn.Module):
         token_scores = self.compute_token_scores(patch_tokens)   # (B, N)
 
         # Temporary fixed ratio for testing
-        keep_ratio = 0.5
+        keep_ratio = self.keep_ratio
 
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio
