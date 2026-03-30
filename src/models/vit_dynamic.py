@@ -129,7 +129,7 @@ class DynamicPrunedViT(nn.Module):
 
         return features   
         
-    def forward(self, x):
+    def forward(self, x, return_debug=False):
         # Patch embedding
         x = self.backbone.patch_embed(x)   # (B, N, D)
         B, N, D = x.shape
@@ -159,10 +159,10 @@ class DynamicPrunedViT(nn.Module):
         controller_features = self.compute_controller_features(token_scores)
         keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
 
-        print("controller_features shape:", controller_features.shape)
-        print("budget_logits shape:", budget_logits.shape)
-        print("budget_indices shape:", budget_indices.shape)
-        print("predicted keep_ratio:", keep_ratio)
+        #print("controller_features shape:", controller_features.shape)
+        #print("budget_logits shape:", budget_logits.shape)
+        #print("budget_indices shape:", budget_indices.shape)
+        #print("predicted keep_ratio:", keep_ratio)
         
         
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
@@ -185,6 +185,16 @@ class DynamicPrunedViT(nn.Module):
 
         # Classifier head
         logits = self.backbone.head(cls_output)   # (B, num_classes)
+
+        if return_debug:
+            return {
+                "logits": logits,
+                "keep_ratio": keep_ratio,
+                "budget_logits": budget_logits,
+                "budget_indices": budget_indices,
+                "token_scores": token_scores,
+                "controller_features": controller_features,
+            }
 
         return logits
 
