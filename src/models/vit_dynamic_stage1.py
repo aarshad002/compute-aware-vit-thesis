@@ -34,8 +34,6 @@ class DynamicPrunedViT(nn.Module):
         self.budget_options = controller_cfg.get(
             "budget_options", [0.25, 0.50, 0.75, 1.0]
         )
-        self.controller_enabled = controller_cfg.get("enabled", False)
-
         
         self.controller = BudgetController(
             input_dim=8,
@@ -159,12 +157,8 @@ class DynamicPrunedViT(nn.Module):
 
         # Compute controller features (for future use in adaptive pruning)
         controller_features = self.compute_controller_features(token_scores)
-        if self.controller_enabled:
-            keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
-        else:
-            keep_ratio = self.keep_ratio
-            budget_logits = None
-            budget_indices = None
+        keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
+
         #print("controller_features shape:", controller_features.shape)
         #print("budget_logits shape:", budget_logits.shape)
         #print("budget_indices shape:", budget_indices.shape)
