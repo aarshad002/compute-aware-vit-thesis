@@ -1,5 +1,5 @@
 #!/usr/bin/bash --login
-#SBATCH --job-name=baseline_dense_vit
+#SBATCH --job-name=vit_job
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4

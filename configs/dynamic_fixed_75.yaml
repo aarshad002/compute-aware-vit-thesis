@@ -1,4 +1,4 @@
-experiment_name: dynamic_fixed_50
+experiment_name: dynamic_fixed_75
 
 seed: 42
 
@@ -26,7 +26,7 @@ logging:
 pruning:
   prune_layer: 6
   score_method: l2
-  keep_ratio: 0.50
+  keep_ratio: 0.75
 
 controller:
   enabled: false

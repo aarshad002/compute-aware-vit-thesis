@@ -145,12 +145,27 @@ def main(config_path):
     if "pruning" in config:
         prune_cfg = config["pruning"]
 
+        patch_tokens_before_prune = 196
+        keep_tokens = prune_cfg.get("keep_tokens")
+        keep_ratio = prune_cfg.get("keep_ratio")
+
+        if keep_tokens is not None:
+            patch_tokens_kept = keep_tokens
+        elif keep_ratio is not None:
+            patch_tokens_kept = int(patch_tokens_before_prune * keep_ratio)
+        else:
+            patch_tokens_kept = None
+
+        total_tokens_after_prune = (
+            patch_tokens_kept + 1 if patch_tokens_kept is not None else None
+        )
+
         metrics["pruning"] = {
             "enabled": True,
             "prune_layer": prune_cfg.get("prune_layer"),
-            "patch_tokens_before_prune": 196,
-            "patch_tokens_kept": prune_cfg.get("keep_tokens"),
-            "total_tokens_after_prune": prune_cfg.get("keep_tokens") + 1
+            "patch_tokens_before_prune": patch_tokens_before_prune,
+            "patch_tokens_kept": patch_tokens_kept,
+            "total_tokens_after_prune": total_tokens_after_prune,
         }
 
     with open(output_dir / "metrics.json", "w") as f:
