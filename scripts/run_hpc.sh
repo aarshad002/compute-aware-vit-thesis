@@ -6,7 +6,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gpus-per-task=1
 #SBATCH --qos=normal
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 

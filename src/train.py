@@ -92,11 +92,23 @@ def main(config_path):
     best_val_acc = -1.0
 
     for epoch in range(epochs):
-        train_loss, train_acc = train_one_epoch(
-            model, train_loader, criterion, optimizer, device
+        controller_cfg = config.get("controller", {})
+        controller_loss_weight = controller_cfg.get("loss_weight", 0.01)
+
+        train_loss, train_acc, train_budget_counts, train_avg_keep = train_one_epoch(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device,
+            controller_loss_weight=controller_loss_weight,
         )
-        val_loss, val_acc = validate_one_epoch(
-            model, val_loader, criterion, device
+
+        val_loss, val_acc, val_budget_counts, val_avg_keep = validate_one_epoch(
+            model,
+            val_loader,
+            criterion,
+            device
         )
 
         print(
@@ -105,14 +117,28 @@ def main(config_path):
             f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}"
         )
 
+        if train_budget_counts is not None:
+            print(
+                f"  Train budget counts: {train_budget_counts} | "
+                f"Train avg expected keep ratio: {train_avg_keep:.4f}"
+            )
+
+        if val_budget_counts is not None:
+            print(
+                f"  Val budget counts: {val_budget_counts} | "
+                f"Val avg expected keep ratio: {val_avg_keep:.4f}"
+            )
         history.append({
             "epoch": epoch + 1,
             "train_loss": train_loss,
             "train_acc": train_acc,
             "val_loss": val_loss,
             "val_acc": val_acc,
+            "train_budget_counts": train_budget_counts,
+            "train_avg_keep_ratio": train_avg_keep,
+            "val_budget_counts": val_budget_counts,
+            "val_avg_keep_ratio": val_avg_keep,
         })
-
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             torch.save(model.state_dict(), output_dir / "best_model.pt")
@@ -144,21 +170,28 @@ def main(config_path):
 
     if "pruning" in config:
         prune_cfg = config["pruning"]
+        controller_cfg = config.get("controller", {})
+        controller_enabled = controller_cfg.get("enabled", False)
 
         patch_tokens_before_prune = 196
-        keep_tokens = prune_cfg.get("keep_tokens")
-        keep_ratio = prune_cfg.get("keep_ratio")
 
-        if keep_tokens is not None:
-            patch_tokens_kept = keep_tokens
-        elif keep_ratio is not None:
-            patch_tokens_kept = int(patch_tokens_before_prune * keep_ratio)
-        else:
+        if controller_enabled:
             patch_tokens_kept = None
+            total_tokens_after_prune = None
+        else:
+            keep_tokens = prune_cfg.get("keep_tokens")
+            keep_ratio = prune_cfg.get("keep_ratio")
 
-        total_tokens_after_prune = (
-            patch_tokens_kept + 1 if patch_tokens_kept is not None else None
-        )
+            if keep_tokens is not None:
+                patch_tokens_kept = keep_tokens
+            elif keep_ratio is not None:
+                patch_tokens_kept = int(patch_tokens_before_prune * keep_ratio)
+            else:
+                patch_tokens_kept = None
+
+            total_tokens_after_prune = (
+                patch_tokens_kept + 1 if patch_tokens_kept is not None else None
+            )
 
         metrics["pruning"] = {
             "enabled": True,
@@ -166,8 +199,9 @@ def main(config_path):
             "patch_tokens_before_prune": patch_tokens_before_prune,
             "patch_tokens_kept": patch_tokens_kept,
             "total_tokens_after_prune": total_tokens_after_prune,
+            "controller_enabled": controller_enabled,
         }
-
+        
     with open(output_dir / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
 

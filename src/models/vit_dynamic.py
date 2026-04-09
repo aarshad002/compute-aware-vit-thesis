@@ -36,10 +36,11 @@ class DynamicPrunedViT(nn.Module):
         )
         self.controller_enabled = controller_cfg.get("enabled", False)
 
-        
+        controller_hidden_dim = controller_cfg.get("hidden_dim", 32)
+
         self.controller = BudgetController(
             input_dim=8,
-            hidden_dim=32,
+            hidden_dim=controller_hidden_dim,
             num_budgets=len(self.budget_options)
         )
         
@@ -61,25 +62,28 @@ class DynamicPrunedViT(nn.Module):
             raise ValueError(f"Unsupported score method: {self.score_method}")
 
     def predict_keep_ratio(self, controller_features):
-        """
-        controller_features: (B, 8)
+        budget_logits = self.controller(controller_features)   # (B, num_budgets)
+        budget_probs = torch.softmax(budget_logits, dim=1)     # (B, num_budgets)
 
-        returns:
-            keep_ratio: float
-            budget_logits: (B, num_budgets)
-            budget_indices: (B,)
-        """
-        budget_logits = self.controller(controller_features)   # (B, 4)
-        budget_indices = torch.argmax(budget_logits, dim=1)    # (B,)
+        budget_indices = torch.argmax(budget_probs, dim=1)     # (B,)
 
         if controller_features.size(0) != 1:
             raise ValueError(
-                "Current dynamic prototype supports only batch_size=1 "
-                "because each sample may choose a different token budget."
+                "Current controller-enabled dynamic prototype supports only batch_size=1."
             )
 
-        keep_ratio = self.budget_options[budget_indices[0].item()]
-        return keep_ratio, budget_logits, budget_indices
+        chosen_keep_ratio = self.budget_options[budget_indices[0].item()]
+        expected_keep_ratio = (
+            budget_probs
+            * torch.tensor(
+                self.budget_options,
+                device=controller_features.device,
+                dtype=budget_probs.dtype,
+            ).unsqueeze(0)
+        ).sum(dim=1)   # (B,)
+
+        return chosen_keep_ratio, expected_keep_ratio, budget_logits, budget_probs, budget_indices
+    
     def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
         """
         patch_tokens: (B, N, D)
@@ -131,7 +135,7 @@ class DynamicPrunedViT(nn.Module):
 
         return features   
         
-    def forward(self, x, return_debug=False):
+    def forward(self, x, return_debug=False, return_controller_info=False):
         # Patch embedding
         x = self.backbone.patch_embed(x)   # (B, N, D)
         B, N, D = x.shape
@@ -160,10 +164,14 @@ class DynamicPrunedViT(nn.Module):
         # Compute controller features (for future use in adaptive pruning)
         controller_features = self.compute_controller_features(token_scores)
         if self.controller_enabled:
-            keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
+            chosen_keep_ratio, expected_keep_ratio, budget_logits, budget_probs, budget_indices = \
+                self.predict_keep_ratio(controller_features)
+            keep_ratio = chosen_keep_ratio
         else:
             keep_ratio = self.keep_ratio
+            expected_keep_ratio = torch.tensor([self.keep_ratio], device=x.device, dtype=x.dtype)
             budget_logits = None
+            budget_probs = None
             budget_indices = None
         #print("controller_features shape:", controller_features.shape)
         #print("budget_logits shape:", budget_logits.shape)
@@ -171,6 +179,7 @@ class DynamicPrunedViT(nn.Module):
         #print("predicted keep_ratio:", keep_ratio)
         
         
+
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio
         )
@@ -196,13 +205,23 @@ class DynamicPrunedViT(nn.Module):
             return {
                 "logits": logits,
                 "keep_ratio": keep_ratio,
+                "expected_keep_ratio": expected_keep_ratio,
                 "budget_logits": budget_logits,
+                "budget_probs": budget_probs,
                 "budget_indices": budget_indices,
                 "token_scores": token_scores,
                 "controller_features": controller_features,
             }
 
-        return logits
+        if return_controller_info:
+            return {
+                "logits": logits,
+                "keep_ratio": keep_ratio,
+                "expected_keep_ratio": expected_keep_ratio,
+                "budget_logits": budget_logits,
+                "budget_probs": budget_probs,
+                "budget_indices": budget_indices,
+            }
 
 def build_dynamic_model(config):
     return DynamicPrunedViT(config)
