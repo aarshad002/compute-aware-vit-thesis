@@ -1,0 +1,12 @@
+Files already downloaded and verified
+Files already downloaded and verified
+Using device: cuda
+
+Preparing model for budget 0.25
+Traceback (most recent call last):
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/scripts/build_budget_labels.py", line 82, in <module>
+    main()
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/scripts/build_budget_labels.py", line 57, in main
+    preds = logits.argmax(dim=1)
+            ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'argmax'

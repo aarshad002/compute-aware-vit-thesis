@@ -10,7 +10,12 @@ from utils.seed import set_seed
 from utils.logger import create_output_dir
 from models.vit import build_model
 from datasets.cifar import build_dataloaders
-from training.engine import train_one_epoch, validate_one_epoch
+from training.engine import (
+    train_one_epoch,
+    validate_one_epoch,
+    train_controller_one_epoch,
+    validate_controller_one_epoch,
+)
 from fvcore.nn import FlopCountAnalysis
 
 
@@ -21,8 +26,11 @@ def compute_model_stats(model, device, image_size=224):
 
     params = sum(p.numel() for p in model.parameters())
 
-    flops = FlopCountAnalysis(model, dummy_input)
-    total_flops = flops.total()
+    try:
+        flops = FlopCountAnalysis(model, dummy_input)
+        total_flops = flops.total()
+    except Exception:
+        total_flops = 0
 
     print(f"Total parameters: {params / 1e6:.2f}M")
     print(f"FLOPs per image: {total_flops / 1e9:.2f} GFLOPs")
@@ -30,20 +38,28 @@ def compute_model_stats(model, device, image_size=224):
     return params, total_flops
 
 
-def measure_latency(model, dataloader, device):
+def measure_latency(model, dataloader, device, supervised_training=False):
     model.eval()
     total_time = 0.0
     total_samples = 0
 
     with torch.no_grad():
-        for images, _ in dataloader:
+        for batch in dataloader:
+            if len(batch) >= 2:
+                images = batch[0]
+            else:
+                raise ValueError("Unexpected batch format in measure_latency().")
+
             images = images.to(device)
 
             if device == "cuda":
                 torch.cuda.synchronize()
             start = time.time()
 
-            _ = model(images)
+            if supervised_training and hasattr(model, "forward_controller_only"):
+                _ = model.forward_controller_only(images)
+            else:
+                _ = model(images)
 
             if device == "cuda":
                 torch.cuda.synchronize()
@@ -79,7 +95,18 @@ def main(config_path):
     image_size = config["data"].get("image_size", 224)
     params, flops = compute_model_stats(model, device, image_size)
 
-    criterion = nn.CrossEntropyLoss()
+    controller_cfg = config.get("controller", {})
+    supervised_training = controller_cfg.get("supervised_training", False)
+
+    if supervised_training:
+        class_weights = controller_cfg.get("class_weights", None)
+        if class_weights is not None:
+            weight_tensor = torch.tensor(class_weights, dtype=torch.float32).to(device)
+            criterion = nn.CrossEntropyLoss(weight=weight_tensor)
+        else:
+            criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(
         model.parameters(),
         lr=config["training"]["learning_rate"],
@@ -89,27 +116,47 @@ def main(config_path):
     epochs = config["training"]["epochs"]
     history = []
 
-    best_val_acc = -1.0
+    best_metric = -1.0
+
+    
 
     for epoch in range(epochs):
-        controller_cfg = config.get("controller", {})
-        controller_loss_weight = controller_cfg.get("loss_weight", 0.01)
+        if supervised_training:
+            train_loss, train_acc, train_budget_counts = train_controller_one_epoch(
+                model,
+                train_loader,
+                criterion,
+                optimizer,
+                device,
+            )
 
-        train_loss, train_acc, train_budget_counts, train_avg_keep = train_one_epoch(
-            model,
-            train_loader,
-            criterion,
-            optimizer,
-            device,
-            controller_loss_weight=controller_loss_weight,
-        )
+            val_loss, val_acc, val_budget_counts = validate_controller_one_epoch(
+                model,
+                val_loader,
+                criterion,
+                device,
+            )
 
-        val_loss, val_acc, val_budget_counts, val_avg_keep = validate_one_epoch(
-            model,
-            val_loader,
-            criterion,
-            device
-        )
+            train_avg_keep = None
+            val_avg_keep = None
+        else:
+            controller_loss_weight = controller_cfg.get("loss_weight", 0.01)
+
+            train_loss, train_acc, train_budget_counts, train_avg_keep = train_one_epoch(
+                model,
+                train_loader,
+                criterion,
+                optimizer,
+                device,
+                controller_loss_weight=controller_loss_weight,
+            )
+
+            val_loss, val_acc, val_budget_counts, val_avg_keep = validate_one_epoch(
+                model,
+                val_loader,
+                criterion,
+                device
+            )
 
         print(
             f"Epoch [{epoch+1}/{epochs}] "
@@ -118,16 +165,23 @@ def main(config_path):
         )
 
         if train_budget_counts is not None:
-            print(
-                f"  Train budget counts: {train_budget_counts} | "
-                f"Train avg expected keep ratio: {train_avg_keep:.4f}"
-            )
+            if train_avg_keep is not None:
+                print(
+                    f"  Train budget counts: {train_budget_counts} | "
+                    f"Train avg expected keep ratio: {train_avg_keep:.4f}"
+                )
+            else:
+                print(f"  Train budget counts: {train_budget_counts}")
 
         if val_budget_counts is not None:
-            print(
-                f"  Val budget counts: {val_budget_counts} | "
-                f"Val avg expected keep ratio: {val_avg_keep:.4f}"
-            )
+            if val_avg_keep is not None:
+                print(
+                    f"  Val budget counts: {val_budget_counts} | "
+                    f"Val avg expected keep ratio: {val_avg_keep:.4f}"
+                )
+            else:
+                print(f"  Val budget counts: {val_budget_counts}")
+
         history.append({
             "epoch": epoch + 1,
             "train_loss": train_loss,
@@ -139,8 +193,10 @@ def main(config_path):
             "val_budget_counts": val_budget_counts,
             "val_avg_keep_ratio": val_avg_keep,
         })
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
+
+        metric_for_best = val_acc
+        if metric_for_best > best_metric:
+            best_metric = metric_for_best
             torch.save(model.state_dict(), output_dir / "best_model.pt")
 
     torch.save(model.state_dict(), output_dir / "last_model.pt")
@@ -149,7 +205,12 @@ def main(config_path):
     model.load_state_dict(torch.load(output_dir / "best_model.pt", map_location=device))
     model = model.to(device)
 
-    latency, throughput = measure_latency(model, val_loader, device)
+    latency, throughput = measure_latency(
+        model,
+        val_loader,
+        device,
+        supervised_training=supervised_training,
+    )
 
     print(f"Latency (sec/sample): {latency:.6f}")
     print(f"Throughput (samples/sec): {throughput:.2f}")
@@ -162,7 +223,7 @@ def main(config_path):
         "parameters_millions": round(params / 1e6, 4),
         "flops": flops,
         "flops_giga": round(flops / 1e9, 4),
-        "best_val_acc": best_val_acc,
+        "best_val_acc": best_metric,
         "latency": latency,
         "throughput": throughput,
         "epochs": history,
@@ -170,7 +231,6 @@ def main(config_path):
 
     if "pruning" in config:
         prune_cfg = config["pruning"]
-        controller_cfg = config.get("controller", {})
         controller_enabled = controller_cfg.get("enabled", False)
 
         patch_tokens_before_prune = 196
@@ -200,12 +260,13 @@ def main(config_path):
             "patch_tokens_kept": patch_tokens_kept,
             "total_tokens_after_prune": total_tokens_after_prune,
             "controller_enabled": controller_enabled,
+            "supervised_training": supervised_training,
         }
-        
+
     with open(output_dir / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
 
-    print(f"Best validation accuracy: {best_val_acc:.4f}")
+    print(f"Best validation accuracy: {best_metric:.4f}")
 
 
 if __name__ == "__main__":

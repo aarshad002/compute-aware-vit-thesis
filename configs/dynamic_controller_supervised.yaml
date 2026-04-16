@@ -1,0 +1,39 @@
+experiment_name: dynamic_controller_supervised
+
+seed: 42
+
+model:
+  type: dynamic
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+training:
+  batch_size: 32
+  epochs: 5
+  learning_rate: 0.00005
+  weight_decay: 0.0001
+
+data:
+  dataset_name: cifar100
+  data_dir: ./data
+  image_size: 224
+  num_workers: 2
+
+logging:
+  use_wandb: false
+
+pruning:
+  prune_layer: 6
+  score_method: l2
+  keep_ratio: 1.0
+
+controller:
+  enabled: true
+  supervised_training: true
+  budget_options: [0.25, 0.50, 0.75, 1.0]
+  budget_label_path: data/budget_labels_balanced.json
+  val_budget_label_path: data/budget_labels_val_balanced.json
+  hidden_dim: 64
+  dropout: 0.2
+  class_weights: [1.4, 1.0, 1.5, 1.0]

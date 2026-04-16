@@ -30,4 +30,5 @@ controller:
   enabled: true
   budget_options: [0.25, 0.50, 0.75]
   hidden_dim: 32
+  gumbel_tau: 1.0
   loss_weight: 0.0

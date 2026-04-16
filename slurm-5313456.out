@@ -1,0 +1,58 @@
+Files already downloaded and verified
+Files already downloaded and verified
+Using device: cuda
+
+Preparing model for budget 0.25
+Budget 0.25 | processed sample 0
+Budget 0.25 | processed sample 1000
+Budget 0.25 | processed sample 2000
+Budget 0.25 | processed sample 3000
+Budget 0.25 | processed sample 4000
+Budget 0.25 | processed sample 5000
+Budget 0.25 | processed sample 6000
+Budget 0.25 | processed sample 7000
+Budget 0.25 | processed sample 8000
+Budget 0.25 | processed sample 9000
+Budget 0.25 done. Labels assigned so far: 98
+
+Preparing model for budget 0.50
+Budget 0.50 | processed sample 0
+Budget 0.50 | processed sample 1000
+Budget 0.50 | processed sample 2000
+Budget 0.50 | processed sample 3000
+Budget 0.50 | processed sample 4000
+Budget 0.50 | processed sample 5000
+Budget 0.50 | processed sample 6000
+Budget 0.50 | processed sample 7000
+Budget 0.50 | processed sample 8000
+Budget 0.50 | processed sample 9000
+Budget 0.50 done. Labels assigned so far: 199
+
+Preparing model for budget 0.75
+Budget 0.75 | processed sample 0
+Budget 0.75 | processed sample 1000
+Budget 0.75 | processed sample 2000
+Budget 0.75 | processed sample 3000
+Budget 0.75 | processed sample 4000
+Budget 0.75 | processed sample 5000
+Budget 0.75 | processed sample 6000
+Budget 0.75 | processed sample 7000
+Budget 0.75 | processed sample 8000
+Budget 0.75 | processed sample 9000
+Budget 0.75 done. Labels assigned so far: 301
+
+Preparing model for budget 1.00
+Budget 1.00 | processed sample 0
+Budget 1.00 | processed sample 1000
+Budget 1.00 | processed sample 2000
+Budget 1.00 | processed sample 3000
+Budget 1.00 | processed sample 4000
+Budget 1.00 | processed sample 5000
+Budget 1.00 | processed sample 6000
+Budget 1.00 | processed sample 7000
+Budget 1.00 | processed sample 8000
+Budget 1.00 | processed sample 9000
+Budget 1.00 done. Labels assigned so far: 359
+
+Saved oracle budget labels to: /mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/data/budget_labels_val.json
+Total labeled samples: 10000

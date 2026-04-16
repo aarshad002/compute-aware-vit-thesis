@@ -3,18 +3,18 @@ import torch
 import torch.nn as nn
 
 class BudgetController(nn.Module):
-    def __init__(self, input_dim=8, hidden_dim=32, num_budgets=4):
+    def __init__(self, input_dim=8, hidden_dim=32, num_budgets=4, dropout=0.2):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(hidden_dim, num_budgets)
         )
 
     def forward(self, x):
         return self.net(x)
-
-
+    
 class DynamicPrunedViT(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -35,13 +35,16 @@ class DynamicPrunedViT(nn.Module):
             "budget_options", [0.25, 0.50, 0.75, 1.0]
         )
         self.controller_enabled = controller_cfg.get("enabled", False)
+        self.gumbel_tau = controller_cfg.get("gumbel_tau", 1.0)
 
         controller_hidden_dim = controller_cfg.get("hidden_dim", 32)
+        controller_dropout = controller_cfg.get("dropout", 0.2)
 
         self.controller = BudgetController(
             input_dim=8,
             hidden_dim=controller_hidden_dim,
-            num_budgets=len(self.budget_options)
+            num_budgets=len(self.budget_options),
+            dropout=controller_dropout,
         )
         
         self.backbone = timm.create_model(
@@ -62,10 +65,9 @@ class DynamicPrunedViT(nn.Module):
             raise ValueError(f"Unsupported score method: {self.score_method}")
 
     def predict_keep_ratio(self, controller_features):
-        budget_logits = self.controller(controller_features)   # (B, num_budgets)
-        budget_probs = torch.softmax(budget_logits, dim=1)     # (B, num_budgets)
-
-        budget_indices = torch.argmax(budget_probs, dim=1)     # (B,)
+        budget_logits = self.controller(controller_features)  # (B, num_budgets)
+        budget_probs = torch.softmax(budget_logits, dim=1)
+        budget_indices = torch.argmax(budget_probs, dim=1)
 
         if controller_features.size(0) != 1:
             raise ValueError(
@@ -73,16 +75,19 @@ class DynamicPrunedViT(nn.Module):
             )
 
         chosen_keep_ratio = self.budget_options[budget_indices[0].item()]
-        expected_keep_ratio = (
-            budget_probs
-            * torch.tensor(
-                self.budget_options,
-                device=controller_features.device,
-                dtype=budget_probs.dtype,
-            ).unsqueeze(0)
-        ).sum(dim=1)   # (B,)
+        expected_keep_ratio = torch.tensor(
+            [chosen_keep_ratio],
+            device=controller_features.device,
+            dtype=budget_logits.dtype,
+        )
 
-        return chosen_keep_ratio, expected_keep_ratio, budget_logits, budget_probs, budget_indices
+        return (
+            chosen_keep_ratio,
+            expected_keep_ratio,
+            budget_logits,
+            budget_probs,
+            budget_indices,
+        )
     
     def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
         """
@@ -133,7 +138,44 @@ class DynamicPrunedViT(nn.Module):
             dim=1,
         )
 
-        return features   
+        return features 
+    
+    def forward_controller_only(self, x):
+        # Patch embedding
+        x = self.backbone.patch_embed(x)
+        B, N, D = x.shape
+
+        # Add CLS token
+        cls_tokens = self.backbone.cls_token.expand(B, -1, -1)
+        x = torch.cat((cls_tokens, x), dim=1)
+
+        # Add positional embeddings
+        x = x + self.backbone.pos_embed
+        x = self.backbone.pos_drop(x)
+
+        # Run transformer blocks up to prune_layer
+        for i, blk in enumerate(self.backbone.blocks):
+            x = blk(x)
+            if i + 1 == self.prune_layer:
+                break
+
+        # Split CLS and patch tokens
+        patch_tokens = x[:, 1:, :]
+
+        # Compute token scores
+        token_scores = self.compute_token_scores(patch_tokens)
+
+        # Compute controller features
+        controller_features = self.compute_controller_features(token_scores)
+
+        # Controller logits
+        budget_logits = self.controller(controller_features)
+
+        return {
+            "budget_logits": budget_logits,
+            "controller_features": controller_features,
+            "token_scores": token_scores,
+        }  
         
     def forward(self, x, return_debug=False, return_controller_info=False):
         # Patch embedding
@@ -222,6 +264,7 @@ class DynamicPrunedViT(nn.Module):
                 "budget_probs": budget_probs,
                 "budget_indices": budget_indices,
             }
-
+        return logits
+    
 def build_dynamic_model(config):
     return DynamicPrunedViT(config)
