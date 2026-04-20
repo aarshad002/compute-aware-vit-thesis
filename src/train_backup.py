@@ -92,28 +92,12 @@ def main(config_path):
 
     model = build_model(config).to(device)
 
-    controller_cfg = config.get("controller", {})
-    supervised_training = controller_cfg.get("supervised_training", False)
-
-        
-    # STEP 1 — load backbone checkpoint if specified
-    if controller_cfg.get("load_backbone_from", None):
-        checkpoint_path = controller_cfg["load_backbone_from"]
-        state = torch.load(checkpoint_path, map_location=device, weights_only=True)
-        backbone_state = {k: v for k, v in state.items() if k.startswith("backbone.")}
-        model.load_state_dict(backbone_state, strict=False)
-        print(f"Loaded backbone from {checkpoint_path}")
-
-    # STEP 2 — freeze backbone for any controller run
-    if controller_cfg.get("enabled", False):
-        for param in model.backbone.parameters():
-            param.requires_grad = False
-        print("Backbone frozen — training controller only")
-
     image_size = config["data"].get("image_size", 224)
     params, flops = compute_model_stats(model, device, image_size)
 
-    # STEP 3 — criterion
+    controller_cfg = config.get("controller", {})
+    supervised_training = controller_cfg.get("supervised_training", False)
+
     if supervised_training:
         class_weights = controller_cfg.get("class_weights", None)
         if class_weights is not None:
@@ -123,10 +107,8 @@ def main(config_path):
             criterion = nn.CrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss()
-
-    # STEP 4 — optimizer only over unfrozen params
     optimizer = optim.AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
+        model.parameters(),
         lr=config["training"]["learning_rate"],
         weight_decay=config["training"]["weight_decay"]
     )

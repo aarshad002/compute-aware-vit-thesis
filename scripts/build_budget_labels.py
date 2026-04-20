@@ -22,7 +22,13 @@ def load_teacher_model(config_path, checkpoint_path, device):
 
     model = build_model(config).to(device)
     state_dict = torch.load(ROOT / checkpoint_path, map_location=device)
-    model.load_state_dict(state_dict)
+
+    filtered_state_dict = {
+        k: v for k, v in state_dict.items()
+        if not k.startswith("controller.")
+    }
+
+    model.load_state_dict(filtered_state_dict, strict=False)
     model.eval()
     return model
 

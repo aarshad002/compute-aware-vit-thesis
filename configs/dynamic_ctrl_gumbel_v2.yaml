@@ -1,0 +1,38 @@
+experiment_name: dynamic_ctrl_gumbel_v2
+
+seed: 42
+
+model:
+  type: dynamic
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+training:
+  batch_size: 32        # ← back to 32, backbone frozen so same budget per batch is fine
+  epochs: 10
+  learning_rate: 0.001  # ← higher LR, only small controller MLP training
+  weight_decay: 0.0001
+
+data:
+  dataset_name: cifar100
+  data_dir: ./data
+  image_size: 224
+  num_workers: 2
+
+logging:
+  use_wandb: false
+
+pruning:
+  prune_layer: 6
+  score_method: l2
+  keep_ratio: 0.5
+
+controller:
+  enabled: true
+  load_backbone_from: outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+  budget_options: [0.25, 0.50, 0.75, 1.0]
+  hidden_dim: 64
+  dropout: 0.2
+  gumbel_tau: 1.0
+  loss_weight: 0.1      # ← much stronger penalty now that backbone is frozen

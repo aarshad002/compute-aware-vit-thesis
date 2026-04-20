@@ -65,21 +65,43 @@ class DynamicPrunedViT(nn.Module):
             raise ValueError(f"Unsupported score method: {self.score_method}")
 
     def predict_keep_ratio(self, controller_features):
-        budget_logits = self.controller(controller_features)  # (B, num_budgets)
-        budget_probs = torch.softmax(budget_logits, dim=1)
-        budget_indices = torch.argmax(budget_probs, dim=1)
+        budget_logits = self.controller(controller_features)   # (B, num_budgets)
+        budget_probs  = torch.softmax(budget_logits, dim=1)
 
-        if controller_features.size(0) != 1:
-            raise ValueError(
-                "Current controller-enabled dynamic prototype supports only batch_size=1."
+        if self.training:
+            # ── STRAIGHT-THROUGH GUMBEL-SOFTMAX ──────────────────────────
+            # Forward: hard one-hot sample  (acts like argmax)
+            # Backward: gradient flows through soft gumbel probs
+            gumbel_soft = nn.functional.gumbel_softmax(
+                budget_logits, tau=self.gumbel_tau, hard=True, dim=1
+            )  # (B, num_budgets) — one-hot on forward, soft on backward
+            
+            # Expected keep ratio — differentiable for the penalty term
+            budget_tensor = torch.tensor(
+                self.budget_options,
+                device=budget_logits.device,
+                dtype=budget_logits.dtype
             )
+            expected_keep_ratio = (gumbel_soft * budget_tensor).sum(dim=1)  # (B,)
+            
+            # Hard budget index for logging
+            budget_indices = gumbel_soft.argmax(dim=1)  # (B,)
+            
+            # Keep ratio for this batch — use the mode (most common choice)
+            # Since batch_size=1, it's just the single chosen index
+            chosen_idx = budget_indices[0].item()
+            chosen_keep_ratio = self.budget_options[chosen_idx]
 
-        chosen_keep_ratio = self.budget_options[budget_indices[0].item()]
-        expected_keep_ratio = torch.tensor(
-            [chosen_keep_ratio],
-            device=controller_features.device,
-            dtype=budget_logits.dtype,
-        )
+        else:
+            # ── INFERENCE: pure hard argmax ───────────────────────────────
+            budget_indices = torch.argmax(budget_probs, dim=1)   # (B,)
+            chosen_idx = budget_indices[0].item()
+            chosen_keep_ratio = self.budget_options[chosen_idx]
+            expected_keep_ratio = torch.tensor(
+                [chosen_keep_ratio],
+                device=budget_logits.device,
+                dtype=budget_logits.dtype
+            )
 
         return (
             chosen_keep_ratio,
