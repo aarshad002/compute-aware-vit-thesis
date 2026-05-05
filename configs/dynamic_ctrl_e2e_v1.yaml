@@ -1,0 +1,42 @@
+experiment_name: dynamic_ctrl_e2e_v2
+
+seed: 42
+
+model:
+  type: dynamic
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.00005
+  weight_decay: 0.0001
+
+data:
+  dataset_name: cifar100
+  data_dir: ./data
+  image_size: 224
+  num_workers: 2
+
+logging:
+  use_wandb: false
+
+pruning:
+  prune_layer: 6
+  score_method: l2
+  keep_ratio: 0.5
+
+controller:
+  enabled: true
+  supervised_training: false
+  budget_options: [0.25, 0.50, 0.75, 1.0]
+  load_backbone_from: outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+  hidden_dim: 64
+  dropout: 0.1
+  gumbel_tau: 1.0
+  loss_weight: 1.0
+  distillation_weight: 0.5
+  teacher_checkpoint: outputs/baseline_dense_vit_20260323_122212/best_model.pt
+  use_val_for_training: true

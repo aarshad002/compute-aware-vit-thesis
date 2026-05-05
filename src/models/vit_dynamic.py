@@ -3,10 +3,13 @@ import torch
 import torch.nn as nn
 
 class BudgetController(nn.Module):
-    def __init__(self, input_dim=8, hidden_dim=32, num_budgets=4, dropout=0.2):
+    def __init__(self, input_dim=192, hidden_dim=64, num_budgets=4, dropout=0.1):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(hidden_dim, num_budgets)
@@ -41,7 +44,7 @@ class DynamicPrunedViT(nn.Module):
         controller_dropout = controller_cfg.get("dropout", 0.2)
 
         self.controller = BudgetController(
-            input_dim=8,
+            input_dim=12,
             hidden_dim=controller_hidden_dim,
             num_budgets=len(self.budget_options),
             dropout=controller_dropout,
@@ -135,32 +138,52 @@ class DynamicPrunedViT(nn.Module):
         return selected_tokens, selected_scores, selected_indices
     
     
-    def compute_controller_features(self, token_scores):
+    def compute_controller_features(self, token_scores, cls_token):
         """
-        token_scores: (B, N)
-
-        returns:
-            features: (B, F)
+        token_scores: (B, N)   — L2 norms of patch tokens after layer 6
+        cls_token:    (B, 1, D) — CLS token representation after layer 6
+        returns:      (B, 12)
         """
+        # ── token score statistics (original 8 features) ──────────────
         mean_score = token_scores.mean(dim=1, keepdim=True)
-        std_score = token_scores.std(dim=1, keepdim=True)
-        max_score = token_scores.max(dim=1, keepdim=True).values
-        min_score = token_scores.min(dim=1, keepdim=True).values
+        std_score  = token_scores.std(dim=1, keepdim=True)
+        max_score  = token_scores.max(dim=1, keepdim=True).values
+        min_score  = token_scores.min(dim=1, keepdim=True).values
 
         top2_scores, _ = torch.topk(token_scores, k=2, dim=1)
-        top1 = top2_scores[:, 0:1]
-        top2 = top2_scores[:, 1:2]
+        top1   = top2_scores[:, 0:1]
+        top2   = top2_scores[:, 1:2]
         margin = top1 - top2
 
-        probs = torch.softmax(token_scores, dim=1)
+        probs   = torch.softmax(token_scores, dim=1)
         entropy = -(probs * torch.log(probs + 1e-8)).sum(dim=1, keepdim=True)
 
-        features = torch.cat(
-            [mean_score, std_score, max_score, min_score, top1, top2, margin, entropy],
-            dim=1,
-        )
+        # ── classification confidence features (4 new features) ────────
+        # run CLS token through the head to get intermediate prediction
+        cls_vec    = cls_token[:, 0, :]                        # (B, D)
+        cls_logits = self.backbone.head(cls_vec)               # (B, num_classes)
+        cls_probs  = torch.softmax(cls_logits, dim=1)          # (B, num_classes)
 
-        return features 
+        # entropy of class distribution — high = uncertain = needs more tokens
+        cls_entropy = -(cls_probs * torch.log(cls_probs + 1e-8)).sum(dim=1, keepdim=True)
+
+        # top-1 confidence — high = easy image
+        top1_conf, _ = cls_probs.max(dim=1, keepdim=True)
+
+        # margin between top-1 and top-2 class probs
+        top2_cls, _  = torch.topk(cls_probs, k=2, dim=1)
+        cls_margin   = (top2_cls[:, 0:1] - top2_cls[:, 1:2])
+
+        # L2 norm of CLS vector itself
+        cls_norm = torch.norm(cls_vec, dim=-1, keepdim=True)
+
+        features = torch.cat([
+            mean_score, std_score, max_score, min_score,
+            top1, top2, margin, entropy,
+            cls_entropy, top1_conf, cls_margin, cls_norm
+        ], dim=1)  # (B, 12)
+
+        return features
     
     def forward_controller_only(self, x):
         # Patch embedding
@@ -182,13 +205,17 @@ class DynamicPrunedViT(nn.Module):
                 break
 
         # Split CLS and patch tokens
+        cls_token    = x[:, :1, :]
         patch_tokens = x[:, 1:, :]
 
         # Compute token scores
         token_scores = self.compute_token_scores(patch_tokens)
 
-        # Compute controller features
-        controller_features = self.compute_controller_features(token_scores)
+        # remove compute_controller_features call entirely
+        # just pass CLS vector directly
+        cls_vec = x[:, 0, :]                    # (B, 192)
+        controller_features = cls_vec           # (B, 192)
+        budget_logits = self.controller(cls_vec)
 
         # Controller logits
         budget_logits = self.controller(controller_features)
@@ -218,15 +245,14 @@ class DynamicPrunedViT(nn.Module):
             if i + 1 == self.prune_layer:
                 break
 
-        # Split CLS and patch tokens
-        cls_token = x[:, :1, :]        # (B, 1, D)
-        patch_tokens = x[:, 1:, :]     # (B, N, D)
 
-        # Compute token scores
-        token_scores = self.compute_token_scores(patch_tokens)   # (B, N)
+        # remove compute_controller_features call entirely
+        # just pass CLS vector directly
+        cls_token    = x[:, :1, :]
+        patch_tokens = x[:, 1:, :]
+        token_scores = self.compute_token_scores(patch_tokens)
+        controller_features = self.compute_controller_features(token_scores, cls_token)
 
-        # Compute controller features (for future use in adaptive pruning)
-        controller_features = self.compute_controller_features(token_scores)
         if self.controller_enabled:
             chosen_keep_ratio, expected_keep_ratio, budget_logits, budget_probs, budget_indices = \
                 self.predict_keep_ratio(controller_features)
@@ -234,8 +260,8 @@ class DynamicPrunedViT(nn.Module):
         else:
             keep_ratio = self.keep_ratio
             expected_keep_ratio = torch.tensor([self.keep_ratio], device=x.device, dtype=x.dtype)
-            budget_logits = None
-            budget_probs = None
+            budget_logits  = None
+            budget_probs   = None
             budget_indices = None
         #print("controller_features shape:", controller_features.shape)
         #print("budget_logits shape:", budget_logits.shape)

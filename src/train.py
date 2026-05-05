@@ -90,10 +90,25 @@ def main(config_path):
 
     train_loader, val_loader = build_dataloaders(config)
 
-    model = build_model(config).to(device)
+    model = build_model(config).to(device)        
 
-    controller_cfg = config.get("controller", {})
-    supervised_training = controller_cfg.get("supervised_training", False)
+    controller_cfg = config.get("controller", {}) 
+    supervised_training = controller_cfg.get("supervised_training", False)  
+
+    # NEW — teacher loading
+    teacher_model = None
+    teacher_ckpt = controller_cfg.get("teacher_checkpoint", None)
+    distillation_weight = controller_cfg.get("distillation_weight", 0.0)
+
+    if teacher_ckpt and distillation_weight > 0:
+        teacher_cfg = load_config("configs/baseline_dense.yaml")
+        teacher_model = build_model(teacher_cfg).to(device)
+        t_state = torch.load(teacher_ckpt, map_location=device, weights_only=True)
+        teacher_model.load_state_dict(t_state)
+        teacher_model.eval()
+        for p in teacher_model.parameters():
+            p.requires_grad = False
+        print(f"Teacher model loaded from {teacher_ckpt}")
 
         
     # STEP 1 — load backbone checkpoint if specified
@@ -104,11 +119,6 @@ def main(config_path):
         model.load_state_dict(backbone_state, strict=False)
         print(f"Loaded backbone from {checkpoint_path}")
 
-    # STEP 2 — freeze backbone for any controller run
-    if controller_cfg.get("enabled", False):
-        for param in model.backbone.parameters():
-            param.requires_grad = False
-        print("Backbone frozen — training controller only")
 
     image_size = config["data"].get("image_size", 224)
     params, flops = compute_model_stats(model, device, image_size)
@@ -116,17 +126,31 @@ def main(config_path):
     # STEP 3 — criterion
     if supervised_training:
         class_weights = controller_cfg.get("class_weights", None)
+        use_focal     = controller_cfg.get("use_focal_loss", False)
+        focal_gamma   = controller_cfg.get("focal_gamma", 2.0)
+
         if class_weights is not None:
             weight_tensor = torch.tensor(class_weights, dtype=torch.float32).to(device)
-            criterion = nn.CrossEntropyLoss(weight=weight_tensor)
         else:
-            criterion = nn.CrossEntropyLoss()
+            weight_tensor = None
+
+        if use_focal:
+            import torch.nn.functional as F
+            def criterion(logits, targets):
+                ce   = F.cross_entropy(logits, targets, weight=weight_tensor, reduction="none")
+                pt   = torch.exp(-ce)
+                loss = ((1 - pt) ** focal_gamma) * ce
+                return loss.mean()
+            print(f"Using focal loss with gamma={focal_gamma}")
+        else:
+            criterion = nn.CrossEntropyLoss(weight=weight_tensor) \
+                        if weight_tensor is not None else nn.CrossEntropyLoss()
     else:
         criterion = nn.CrossEntropyLoss()
 
     # STEP 4 — optimizer only over unfrozen params
     optimizer = optim.AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
+        model.parameters(),
         lr=config["training"]["learning_rate"],
         weight_decay=config["training"]["weight_decay"]
     )
@@ -160,6 +184,7 @@ def main(config_path):
         else:
             controller_loss_weight = controller_cfg.get("loss_weight", 0.01)
 
+    
             train_loss, train_acc, train_budget_counts, train_avg_keep = train_one_epoch(
                 model,
                 train_loader,
@@ -167,6 +192,8 @@ def main(config_path):
                 optimizer,
                 device,
                 controller_loss_weight=controller_loss_weight,
+                teacher_model=teacher_model,
+                distillation_weight=distillation_weight,
             )
 
             val_loss, val_acc, val_budget_counts, val_avg_keep = validate_one_epoch(

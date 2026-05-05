@@ -1,7 +1,9 @@
 import torch
 from torchvision import datasets, transforms
-from torch.utils.data import Subset
+from torch.utils.data import Subset, WeightedRandomSampler
 import json
+from collections import Counter
+
 
 class IndexedDataset(torch.utils.data.Dataset):
     def __init__(self, dataset):
@@ -34,6 +36,9 @@ class BudgetLabeledDataset(torch.utils.data.Dataset):
         image, label, _ = self.dataset[original_idx]
         budget_target = self.budget_labels[original_idx]
         return image, label, original_idx, budget_target
+    
+    def get_budget_targets(self):
+        return [self.budget_labels[i] for i in self.valid_indices]
     
 def build_dataloaders(config):
     dataset_name = config["data"]["dataset_name"].lower()
@@ -70,6 +75,19 @@ def build_dataloaders(config):
     controller_cfg      = config.get("controller", {})
     supervised_training = controller_cfg.get("supervised_training", False)
     use_sampler         = False
+
+    # for controller e2e training — split val into two halves
+    # val data is harder (backbone not overfitted) so controller sees real difficulty
+    if controller_cfg.get("use_val_for_training", False):
+        import random
+        total   = len(val_dataset)
+        half    = total // 2
+        indices = list(range(total))
+        random.seed(42)
+        random.shuffle(indices)
+        train_dataset = Subset(val_dataset, indices[:half])
+        val_dataset   = Subset(val_dataset, indices[half:])
+        print(f"Controller e2e: using val split — {len(train_dataset)} train, {len(val_dataset)} val")
 
     if supervised_training:
         train_budget_label_path = controller_cfg["budget_label_path"]

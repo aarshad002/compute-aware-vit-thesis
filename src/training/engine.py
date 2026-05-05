@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-def train_one_epoch(model, loader, criterion, optimizer, device, controller_loss_weight=0.01):
+def train_one_epoch(model, loader, criterion, optimizer, device, controller_loss_weight=0.01, teacher_model=None, distillation_weight=0.0):
     model.train()
     running_loss = 0.0
     correct = 0
@@ -45,7 +45,62 @@ def train_one_epoch(model, loader, criterion, optimizer, device, controller_loss
             # FIX 1: use the argument, not a hardcoded 0.01
             # FIX 2: budget_penalty is now differentiable after Gumbel fix
             #         in vit_dynamic.py — gradient flows to controller
-            loss = cls_loss + controller_loss_weight * budget_penalty
+            cls_loss = criterion(logits, labels)
+
+            # accuracy-aware budget penalty
+            # confidence = how sure the model is about its prediction
+            # low confidence = hard image = controller should use more tokens
+            with torch.no_grad():
+                probs      = torch.softmax(logits.detach(), dim=1)
+                confidence = probs.max(dim=1).values  # (B,)
+
+            # penalty = keep_ratio × (1 - confidence)
+            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
+            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
+            # so for hard images, picking small budget is penalised heavily
+            cls_loss = criterion(logits, labels)
+
+            # accuracy-aware budget penalty
+            # confidence = how sure the model is about its prediction
+            # low confidence = hard image = controller should use more tokens
+            with torch.no_grad():
+                probs      = torch.softmax(logits.detach(), dim=1)
+                confidence = probs.max(dim=1).values  # (B,)
+
+            # penalty = keep_ratio × (1 - confidence)
+            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
+            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
+            # so for hard images, picking small budget is penalised heavily
+            cls_loss = criterion(logits, labels)
+
+            # accuracy-aware budget penalty
+            # confidence = how sure the model is about its prediction
+            # low confidence = hard image = controller should use more tokens
+            with torch.no_grad():
+                probs      = torch.softmax(logits.detach(), dim=1)
+                confidence = probs.max(dim=1).values  # (B,)
+
+            # penalty = keep_ratio × (1 - confidence)
+            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
+            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
+            # so for hard images, picking small budget is penalised heavily
+            budget_penalty = (expected_keep_ratio * (1 - confidence)).mean()
+
+            if teacher_model is not None and distillation_weight > 0:
+                with torch.no_grad():
+                    teacher_logits = teacher_model(images)
+                T = 4.0
+                distill_loss = torch.nn.functional.kl_div(
+                    torch.nn.functional.log_softmax(logits / T, dim=1),
+                    torch.nn.functional.softmax(teacher_logits / T, dim=1),
+                    reduction='batchmean'
+                ) * (T * T)
+            else:
+                distill_loss = torch.tensor(0.0, device=device)
+
+            loss = (cls_loss
+                    + controller_loss_weight * budget_penalty
+                    + distillation_weight * distill_loss)
 
         else:
             logits = model(images)

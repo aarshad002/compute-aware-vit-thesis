@@ -1,0 +1,29 @@
+cascade:
+  budget_options: [0.25, 0.50, 0.75, 1.0]
+  
+  checkpoints:
+    0.25: outputs/dynamic_fixed_25_20260331_142414/best_model.pt
+    0.50: outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+    0.75: outputs/dynamic_fixed_75_20260331_142423/best_model.pt
+    1.00: outputs/baseline_dense_vit_20260323_122212/best_model.pt
+
+  configs:
+    0.25: configs/dynamic_fixed_25.yaml
+    0.50: configs/dynamic_fixed_50.yaml
+    0.75: configs/dynamic_fixed_75.yaml
+    1.00: configs/baseline_dense.yaml
+
+  # confidence thresholds — if confidence >= threshold, stop and use this budget
+  # these will be tuned on val set automatically
+  thresholds:
+    0.25: 0.5    # if 25% model confidence >= 0.5, accept result
+    0.50: 0.4    # if 50% model confidence >= 0.4, accept result
+    0.75: 0.3    # if 75% model confidence >= 0.3, accept result
+    # 1.00 always runs as fallback
+
+data:
+  dataset_name: cifar100
+  data_dir: ./data
+  image_size: 224
+  num_workers: 2
+  batch_size: 1   # must be 1 for cascade — each image exits at different stage
