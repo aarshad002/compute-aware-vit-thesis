@@ -1,0 +1,20 @@
+experiment_name: imagenet_dense_eval
+seed: 42
+
+data:
+  dataset_name: imagenet
+  data_dir: data/imagenet/val
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  debug_subset: null
+
+model:
+  type: dense
+  name: deit_small_patch16_224
+  num_classes: 1000
+  pretrained: true
+
+pruning:
+  enabled: false
+  keep_ratio: 1.0
