@@ -1,0 +1,28 @@
+experiment_name: imagenet_cascade_inference
+seed: 42
+
+data:
+  data_dir: data/imagenet/val
+  image_size: 224
+  batch_size: 1
+  num_workers: 4
+  debug_subset: null
+
+model:
+  name: deit_small_patch16_224
+  num_classes: 1000
+  pretrained: true
+
+cascade:
+  budget_options: [0.25, 0.50, 0.75, 1.00]
+
+  prune_layer: 6
+  score_method: l2
+
+  flops_g:
+    0.25: 2.6863
+    0.50: 3.2078
+    0.75: 3.7292
+    1.00: 4.2507
+
+  threshold_candidates: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
