@@ -1,0 +1,339 @@
+import timm
+import torch
+import torch.nn as nn
+
+class BudgetController(nn.Module):
+    def __init__(self, input_dim=192, hidden_dim=64, num_budgets=4, dropout=0.1):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, num_budgets)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+    
+class DynamicPrunedViT(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        model_cfg = config["model"]
+        pruning_cfg = config.get("pruning", {})
+        controller_cfg = config.get("controller", {})
+
+        self.model_name = model_cfg["name"]
+        self.num_classes = model_cfg["num_classes"]
+        self.pretrained = model_cfg.get("pretrained", True)
+
+        self.prune_layer = pruning_cfg.get("prune_layer", 6)
+        self.score_method = pruning_cfg.get("score_method", "l2")
+        self.keep_ratio = pruning_cfg.get("keep_ratio", 0.5)
+        
+        self.budget_options = controller_cfg.get(
+            "budget_options", [0.25, 0.50, 0.75, 1.0]
+        )
+        self.controller_enabled = controller_cfg.get("enabled", False)
+        self.rule_based          = controller_cfg.get("rule_based", False)
+        self.rule_high_threshold = controller_cfg.get("rule_high_threshold", 0.7)
+        self.rule_low_threshold  = controller_cfg.get("rule_low_threshold", 0.4)
+        self.gumbel_tau = controller_cfg.get("gumbel_tau", 1.0)
+
+        controller_hidden_dim = controller_cfg.get("hidden_dim", 32)
+        controller_dropout = controller_cfg.get("dropout", 0.2)
+
+        self.controller = BudgetController(
+            input_dim=12,
+            hidden_dim=controller_hidden_dim,
+            num_budgets=len(self.budget_options),
+            dropout=controller_dropout,
+        )
+        
+        self.backbone = timm.create_model(
+            self.model_name,
+            pretrained=self.pretrained,
+            num_classes=self.num_classes,
+        )
+
+    def compute_token_scores(self, patch_tokens):
+        """
+        patch_tokens: Tensor of shape (B, N, D)
+        returns: Tensor of shape (B, N)
+        """
+        if self.score_method == "l2":
+            return torch.norm(patch_tokens, dim=-1)
+
+        else:
+            raise ValueError(f"Unsupported score method: {self.score_method}")
+
+    def predict_keep_ratio(self, controller_features):
+        budget_logits = self.controller(controller_features)   # (B, num_budgets)
+        budget_probs  = torch.softmax(budget_logits, dim=1)
+
+        if self.training:
+            # ── STRAIGHT-THROUGH GUMBEL-SOFTMAX ──────────────────────────
+            # Forward: hard one-hot sample  (acts like argmax)
+            # Backward: gradient flows through soft gumbel probs
+            gumbel_soft = nn.functional.gumbel_softmax(
+                budget_logits, tau=self.gumbel_tau, hard=True, dim=1
+            )  # (B, num_budgets) — one-hot on forward, soft on backward
+            
+            # Expected keep ratio — differentiable for the penalty term
+            budget_tensor = torch.tensor(
+                self.budget_options,
+                device=budget_logits.device,
+                dtype=budget_logits.dtype
+            )
+            expected_keep_ratio = (gumbel_soft * budget_tensor).sum(dim=1)  # (B,)
+            
+            # Hard budget index for logging
+            budget_indices = gumbel_soft.argmax(dim=1)  # (B,)
+            
+            # Keep ratio for this batch — use the mode (most common choice)
+            # Since batch_size=1, it's just the single chosen index
+            chosen_idx = budget_indices[0].item()
+            chosen_keep_ratio = self.budget_options[chosen_idx]
+
+        else:
+            # ── INFERENCE: pure hard argmax ───────────────────────────────
+            budget_indices = torch.argmax(budget_probs, dim=1)   # (B,)
+            chosen_idx = budget_indices[0].item()
+            chosen_keep_ratio = self.budget_options[chosen_idx]
+            expected_keep_ratio = torch.tensor(
+                [chosen_keep_ratio],
+                device=budget_logits.device,
+                dtype=budget_logits.dtype
+            )
+
+        return (
+            chosen_keep_ratio,
+            expected_keep_ratio,
+            budget_logits,
+            budget_probs,
+            budget_indices,
+        )
+    
+    def select_topk_tokens(self, patch_tokens, token_scores, keep_ratio):
+        """
+        patch_tokens: (B, N, D)
+        token_scores: (B, N)
+        keep_ratio: float, e.g. 0.5
+
+        returns:
+            selected_tokens: (B, K, D)
+            selected_scores: (B, K)
+            selected_indices: (B, K)
+        """
+        B, N, D = patch_tokens.shape
+        K = max(1, int(N * keep_ratio))
+
+        selected_scores, selected_indices = torch.topk(
+            token_scores, k=K, dim=1, largest=True, sorted=True
+        )
+
+        gather_indices = selected_indices.unsqueeze(-1).expand(-1, -1, D)
+        selected_tokens = torch.gather(patch_tokens, dim=1, index=gather_indices)
+
+        return selected_tokens, selected_scores, selected_indices
+    
+    
+    def compute_controller_features(self, token_scores, cls_token):
+        """
+        token_scores: (B, N)   — L2 norms of patch tokens after layer 6
+        cls_token:    (B, 1, D) — CLS token representation after layer 6
+        returns:      (B, 12)
+        """
+        # ── token score statistics (original 8 features) ──────────────
+        mean_score = token_scores.mean(dim=1, keepdim=True)
+        std_score  = token_scores.std(dim=1, keepdim=True)
+        max_score  = token_scores.max(dim=1, keepdim=True).values
+        min_score  = token_scores.min(dim=1, keepdim=True).values
+
+        top2_scores, _ = torch.topk(token_scores, k=2, dim=1)
+        top1   = top2_scores[:, 0:1]
+        top2   = top2_scores[:, 1:2]
+        margin = top1 - top2
+
+        probs   = torch.softmax(token_scores, dim=1)
+        entropy = -(probs * torch.log(probs + 1e-8)).sum(dim=1, keepdim=True)
+
+        # ── classification confidence features (4 new features) ────────
+        # run CLS token through the head to get intermediate prediction
+        cls_vec    = cls_token[:, 0, :]                        # (B, D)
+        cls_logits = self.backbone.head(cls_vec)               # (B, num_classes)
+        cls_probs  = torch.softmax(cls_logits, dim=1)          # (B, num_classes)
+
+        # entropy of class distribution — high = uncertain = needs more tokens
+        cls_entropy = -(cls_probs * torch.log(cls_probs + 1e-8)).sum(dim=1, keepdim=True)
+
+        # top-1 confidence — high = easy image
+        top1_conf, _ = cls_probs.max(dim=1, keepdim=True)
+
+        # margin between top-1 and top-2 class probs
+        top2_cls, _  = torch.topk(cls_probs, k=2, dim=1)
+        cls_margin   = (top2_cls[:, 0:1] - top2_cls[:, 1:2])
+
+        # L2 norm of CLS vector itself
+        cls_norm = torch.norm(cls_vec, dim=-1, keepdim=True)
+
+        features = torch.cat([
+            mean_score, std_score, max_score, min_score,
+            top1, top2, margin, entropy,
+            cls_entropy, top1_conf, cls_margin, cls_norm
+        ], dim=1)  # (B, 12)
+
+        return features
+    
+    def confidence_based_keep_ratio(self, cls_token):
+        cls_vec    = cls_token[:, 0, :]
+        cls_logits = self.backbone.head(cls_vec)
+        cls_probs  = torch.softmax(cls_logits, dim=1)
+        confidence = cls_probs.max(dim=1).values.mean().item()
+        if confidence >= self.rule_high_threshold:
+            return 0.25
+        elif confidence >= self.rule_low_threshold:
+            return 0.50
+        else:
+            return 0.75
+        
+    def forward_controller_only(self, x):
+        # Patch embedding
+        x = self.backbone.patch_embed(x)
+        B, N, D = x.shape
+
+        # Add CLS token
+        cls_tokens = self.backbone.cls_token.expand(B, -1, -1)
+        x = torch.cat((cls_tokens, x), dim=1)
+
+        # Add positional embeddings
+        x = x + self.backbone.pos_embed
+        x = self.backbone.pos_drop(x)
+
+        # Run transformer blocks up to prune_layer
+        for i, blk in enumerate(self.backbone.blocks):
+            x = blk(x)
+            if i + 1 == self.prune_layer:
+                break
+
+        # Split CLS and patch tokens
+        cls_token    = x[:, :1, :]
+        patch_tokens = x[:, 1:, :]
+
+        # Compute token scores
+        token_scores = self.compute_token_scores(patch_tokens)
+
+        # remove compute_controller_features call entirely
+        # just pass CLS vector directly
+        cls_vec = x[:, 0, :]                    # (B, 192)
+        controller_features = cls_vec           # (B, 192)
+        budget_logits = self.controller(cls_vec)
+
+        # Controller logits
+        budget_logits = self.controller(controller_features)
+
+        return {
+            "budget_logits": budget_logits,
+            "controller_features": controller_features,
+            "token_scores": token_scores,
+        }  
+        
+    def forward(self, x, return_debug=False, return_controller_info=False):
+        # Patch embedding
+        x = self.backbone.patch_embed(x)   # (B, N, D)
+        B, N, D = x.shape
+
+        # Add CLS token
+        cls_tokens = self.backbone.cls_token.expand(B, -1, -1)   # (B, 1, D)
+        x = torch.cat((cls_tokens, x), dim=1)                    # (B, 1+N, D)
+
+        # Add positional embeddings
+        x = x + self.backbone.pos_embed
+        x = self.backbone.pos_drop(x)
+
+        # Run transformer blocks up to prune_layer
+        for i, blk in enumerate(self.backbone.blocks):
+            x = blk(x)
+            if i + 1 == self.prune_layer:
+                break
+
+
+        # remove compute_controller_features call entirely
+        # just pass CLS vector directly
+        cls_token    = x[:, :1, :]
+        patch_tokens = x[:, 1:, :]
+        token_scores = self.compute_token_scores(patch_tokens)
+        controller_features = self.compute_controller_features(token_scores, cls_token)
+
+        if self.controller_enabled:
+            chosen_keep_ratio, expected_keep_ratio, budget_logits, budget_probs, budget_indices = \
+                self.predict_keep_ratio(controller_features)
+            keep_ratio = chosen_keep_ratio
+        elif self.rule_based:
+            keep_ratio          = self.confidence_based_keep_ratio(cls_token)
+            expected_keep_ratio = torch.tensor([keep_ratio], device=x.device, dtype=x.dtype)
+            budget_logits       = torch.zeros(x.shape[0], len(self.budget_options), device=x.device)
+            budget_probs        = torch.zeros(x.shape[0], len(self.budget_options), device=x.device)
+            budget_indices      = torch.zeros(x.shape[0], dtype=torch.long, device=x.device)
+        else:
+            keep_ratio          = self.keep_ratio
+            expected_keep_ratio = torch.tensor([self.keep_ratio], device=x.device, dtype=x.dtype)
+            budget_logits       = None
+            budget_probs        = None
+            budget_indices      = None
+        #print("controller_features shape:", controller_features.shape)
+        #print("budget_logits shape:", budget_logits.shape)
+        #print("budget_indices shape:", budget_indices.shape)
+        #print("predicted keep_ratio:", keep_ratio)
+        
+        
+
+        selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
+            patch_tokens, token_scores, keep_ratio
+        )
+
+        # Rebuild reduced sequence: CLS + selected patch tokens
+        x = torch.cat((cls_token, selected_tokens), dim=1)   # (B, 1+K, D)
+
+        # Continue remaining transformer blocks
+        for i, blk in enumerate(self.backbone.blocks):
+            if i + 1 > self.prune_layer:
+                x = blk(x)
+
+        # Final norm
+        x = self.backbone.norm(x)
+
+        # CLS token for classification
+        cls_output = x[:, 0]   # (B, D)
+
+        # Classifier head
+        logits = self.backbone.head(cls_output)   # (B, num_classes)
+
+        if return_debug:
+            return {
+                "logits": logits,
+                "keep_ratio": keep_ratio,
+                "expected_keep_ratio": expected_keep_ratio,
+                "budget_logits": budget_logits,
+                "budget_probs": budget_probs,
+                "budget_indices": budget_indices,
+                "token_scores": token_scores,
+                "controller_features": controller_features,
+            }
+
+        if return_controller_info:
+            return {
+                "logits": logits,
+                "keep_ratio": keep_ratio,
+                "expected_keep_ratio": expected_keep_ratio,
+                "budget_logits": budget_logits,
+                "budget_probs": budget_probs,
+                "budget_indices": budget_indices,
+            }
+        return logits
+    
+def build_dynamic_rule_model(config):
+    return DynamicPrunedViT(config)

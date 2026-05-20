@@ -1,0 +1,28 @@
+experiment_name: imagenet_rule_controller_v1
+
+seed: 42
+
+model:
+  type: dynamic
+  name: deit_small_patch16_224
+  num_classes: 1000
+  pretrained: true
+
+data:
+  data_dir: data/imagenet/val
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  debug_subset: null
+
+pruning:
+  prune_layer: 10        # ← layer 10 where signal exists
+  score_method: l2
+  keep_ratio: 0.5        # fallback only, overridden by rule_based
+
+controller:
+  enabled: false
+  rule_based: true
+  budget_options: [0.25, 0.50, 0.75]
+  rule_high_threshold: 0.7    # conf >= 0.7 → use 25% tokens
+  rule_low_threshold: 0.4     # conf >= 0.4 → use 50%, else 75%
