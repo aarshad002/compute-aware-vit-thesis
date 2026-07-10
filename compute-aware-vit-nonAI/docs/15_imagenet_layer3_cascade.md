@@ -79,7 +79,7 @@ the **vast majority** of images to exit at 25% — where accuracy is only 67.57%
 
 Yes, marginally — the whole accuracy/FLOPs curve shifted down versus layer 6 (at layer
 6, **no** point got below dense compute even at 78.7% accuracy, ~120% of dense; at
-layer 3 we reach 96% of dense at 78.0%). But it does **not** change the conclusion: the
+layer 3 the cascade reaches 96% of dense at 78.0%). But it does **not** change the conclusion: the
 ImageNet cascade is not a compute-saver at near-dense accuracy, at either prune layer.
 The cumulative break-even (exiting at 50% already exceeds dense) is the binding
 constraint, and earlier pruning only softens it slightly.

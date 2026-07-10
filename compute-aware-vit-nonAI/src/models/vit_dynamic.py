@@ -211,13 +211,10 @@ class DynamicPrunedViT(nn.Module):
         # Compute token scores
         token_scores = self.compute_token_scores(patch_tokens)
 
-        # remove compute_controller_features call entirely
-        # just pass CLS vector directly
-        cls_vec = x[:, 0, :]                    # (B, 192)
-        controller_features = cls_vec           # (B, 192)
-        budget_logits = self.controller(cls_vec)
-
-        # Controller logits
+        # Supervised controller training uses the raw CLS vector as the
+        # controller input
+        cls_vec = x[:, 0, :]                     # (B, D)
+        controller_features = cls_vec
         budget_logits = self.controller(controller_features)
 
         return {
@@ -246,8 +243,8 @@ class DynamicPrunedViT(nn.Module):
                 break
 
 
-        # remove compute_controller_features call entirely
-        # just pass CLS vector directly
+        # Split CLS and patch tokens, score the patches, and build the
+        # 12-dim controller feature vector
         cls_token    = x[:, :1, :]
         patch_tokens = x[:, 1:, :]
         token_scores = self.compute_token_scores(patch_tokens)
@@ -263,12 +260,6 @@ class DynamicPrunedViT(nn.Module):
             budget_logits  = None
             budget_probs   = None
             budget_indices = None
-        #print("controller_features shape:", controller_features.shape)
-        #print("budget_logits shape:", budget_logits.shape)
-        #print("budget_indices shape:", budget_indices.shape)
-        #print("predicted keep_ratio:", keep_ratio)
-        
-        
 
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio

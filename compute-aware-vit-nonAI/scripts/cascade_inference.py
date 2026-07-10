@@ -79,7 +79,8 @@ def run_cascade(models, val_loader, thresholds, device, budget_options):
     budget_counts = {b: 0 for b in budget_options}
     total_time    = 0.0
 
-    # FLOPs per budget (from your existing results)
+    # FLOPs per budget — fvcore measurements of the four fixed-budget models
+    # (see docs/12_results_master_tables.md)
     flops_map = {
         0.25: 0.687e9,
         0.50: 0.818e9,
@@ -191,7 +192,7 @@ def tune_thresholds(models, val_loader, device, budget_options):
 
 
 def main():
-    with open(ROOT / "configs" / "cascade_inference.yaml") as f:
+    with open(ROOT / "configs" / "dynamic" / "cascade_inference.yaml") as f:
         cascade_cfg = yaml.safe_load(f)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

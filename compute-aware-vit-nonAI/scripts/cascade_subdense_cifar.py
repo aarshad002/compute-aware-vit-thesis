@@ -200,7 +200,7 @@ def main():
         for b in [0.10, 0.25, 0.50, 0.75, 1.00]
     }
 
-    # ---- single shared-threshold sweep (Professor's requested 8-row table) ----
+    # ---- single shared-threshold sweep (supervisor-requested 8-row table) ----
     sweep = [simulate_cascade({b: t for b in CASCADE_BUDGETS[:-1]}, conf, correct, gflops)
              for t in THRESHOLDS]
 

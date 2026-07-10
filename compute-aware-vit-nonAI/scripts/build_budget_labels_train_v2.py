@@ -14,7 +14,7 @@ from models.vit import build_model
 
 
 def main():
-    base_config = load_config(str(ROOT / "configs" / "dynamic_fixed_25.yaml"))
+    base_config = load_config(str(ROOT / "configs" / "dynamic" / "dynamic_fixed_25.yaml"))
     base_config["training"]["batch_size"] = 1
     base_config["data"]["debug_subset"] = None
     base_config["controller"] = {"enabled": False}
@@ -30,7 +30,7 @@ def main():
     for budget_idx, budget in enumerate(budgets):
         print(f"\nPreparing model for budget {budget:.2f}")
 
-        config = load_config(str(ROOT / "configs" / "dynamic_fixed_25.yaml"))
+        config = load_config(str(ROOT / "configs" / "dynamic" / "dynamic_fixed_25.yaml"))
         config["training"]["batch_size"] = 1
         config["data"]["debug_subset"] = None
         config["model"]["type"] = "dynamic"

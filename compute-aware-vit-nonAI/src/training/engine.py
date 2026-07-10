@@ -39,51 +39,17 @@ def train_one_epoch(model, loader, criterion, optimizer, device, controller_loss
             expected_keep_ratio_sum  += expected_keep_ratio.mean().item()
             expected_keep_ratio_count += 1
 
-            cls_loss       = criterion(logits, labels)
-            budget_penalty = expected_keep_ratio.mean()
-
-            # FIX 1: use the argument, not a hardcoded 0.01
-            # FIX 2: budget_penalty is now differentiable after Gumbel fix
-            #         in vit_dynamic.py — gradient flows to controller
             cls_loss = criterion(logits, labels)
 
-            # accuracy-aware budget penalty
-            # confidence = how sure the model is about its prediction
-            # low confidence = hard image = controller should use more tokens
+            # Confidence-weighted budget penalty:
+            #   penalty = expected_keep_ratio * (1 - confidence)
+            # where confidence is the top-1 softmax probability of the current
+            # prediction (detached, so the penalty gradient reaches only the
+            # controller's budget choice, not the classifier).
             with torch.no_grad():
                 probs      = torch.softmax(logits.detach(), dim=1)
                 confidence = probs.max(dim=1).values  # (B,)
 
-            # penalty = keep_ratio × (1 - confidence)
-            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
-            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
-            # so for hard images, picking small budget is penalised heavily
-            cls_loss = criterion(logits, labels)
-
-            # accuracy-aware budget penalty
-            # confidence = how sure the model is about its prediction
-            # low confidence = hard image = controller should use more tokens
-            with torch.no_grad():
-                probs      = torch.softmax(logits.detach(), dim=1)
-                confidence = probs.max(dim=1).values  # (B,)
-
-            # penalty = keep_ratio × (1 - confidence)
-            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
-            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
-            # so for hard images, picking small budget is penalised heavily
-            cls_loss = criterion(logits, labels)
-
-            # accuracy-aware budget penalty
-            # confidence = how sure the model is about its prediction
-            # low confidence = hard image = controller should use more tokens
-            with torch.no_grad():
-                probs      = torch.softmax(logits.detach(), dim=1)
-                confidence = probs.max(dim=1).values  # (B,)
-
-            # penalty = keep_ratio × (1 - confidence)
-            # easy image: confidence=0.9 → penalty = 0.25 × 0.1 = 0.025 (tiny)
-            # hard image: confidence=0.1 → penalty = 0.25 × 0.9 = 0.225 (large)
-            # so for hard images, picking small budget is penalised heavily
             budget_penalty = (expected_keep_ratio * (1 - confidence)).mean()
 
             if teacher_model is not None and distillation_weight > 0:
@@ -108,8 +74,8 @@ def train_one_epoch(model, loader, criterion, optimizer, device, controller_loss
 
         loss.backward()
 
-        # FIX 3: clip gradients — critical with batch_size=1
-        # noisy single-sample gradients can cause huge destructive updates
+        # Clip gradients — important at batch_size=1, where noisy
+        # single-sample gradients can cause destructive updates
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
         optimizer.step()
@@ -208,8 +174,8 @@ def train_controller_one_epoch(model, loader, criterion, optimizer, device):
         loss = criterion(budget_logits, budget_targets)
         loss.backward()
 
-        # FIX 3 applies here too — supervised path also uses batch_size=32
-        # so clipping is less critical but still good practice
+        # Clip gradients for stability (less critical at batch sizes > 1,
+        # kept for consistency with the end-to-end training loop)
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
         optimizer.step()
@@ -238,7 +204,8 @@ def validate_controller_one_epoch(model, loader, criterion, device):
     budget_counts = None
 
     for batch in loader:
-        # FIX 4: labels unpacked but not used — harmless, left as-is for consistency
+        # Class labels are unpacked for a consistent batch format but are not
+        # needed here — the controller is evaluated against budget_targets only
         images, labels, indices, budget_targets = batch
         images         = images.to(device)
         budget_targets = budget_targets.to(device)

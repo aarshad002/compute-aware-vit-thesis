@@ -31,9 +31,9 @@ def evaluate_rule_controller(model, loader, device):
     budget_counts = {0.25: 0, 0.50: 0, 0.75: 0}
     total_time    = 0.0
 
-    # FLOPs map for layer 10 pruning
-    # layers 1-10 always full, layers 11-12 pruned
-    # approximate FLOPs based on your existing measurements
+    # FLOPs map for layer-10 pruning: layers 1-10 always run at full token
+    # count, only layers 11-12 are pruned. Values are approximations derived
+    # from the measured fixed-budget FLOPs (see docs/12_results_master_tables.md).
     flops_map = {
         0.25: 3.80e9,
         0.50: 3.94e9,
@@ -143,7 +143,7 @@ def tune_thresholds(config_path, device):
 
 
 def main():
-    config_path = ROOT / "configs" / "imagenet_rule_controller.yaml"
+    config_path = ROOT / "configs" / "dynamic" / "imagenet_rule_controller.yaml"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
     print("Tuning rule-based controller thresholds on ImageNet val...")

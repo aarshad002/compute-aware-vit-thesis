@@ -155,16 +155,11 @@ class DynamicPrunedViT(nn.Module):
         # Compute token scores
         token_scores = self.compute_token_scores(patch_tokens)   # (B, N)
 
-        # Compute controller features (for future use in adaptive pruning)
+        # Compute controller features and predict the token budget
         controller_features = self.compute_controller_features(token_scores)
         keep_ratio, budget_logits, budget_indices = self.predict_keep_ratio(controller_features)
 
-        #print("controller_features shape:", controller_features.shape)
-        #print("budget_logits shape:", budget_logits.shape)
-        #print("budget_indices shape:", budget_indices.shape)
-        #print("predicted keep_ratio:", keep_ratio)
-        
-        
+
         selected_tokens, selected_scores, selected_indices = self.select_topk_tokens(
             patch_tokens, token_scores, keep_ratio
         )

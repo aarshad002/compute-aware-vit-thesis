@@ -95,7 +95,7 @@ def main(config_path):
     controller_cfg = config.get("controller", {}) 
     supervised_training = controller_cfg.get("supervised_training", False)  
 
-    # NEW — teacher loading
+    # Optional dense teacher model for knowledge distillation
     teacher_model = None
     teacher_ckpt = controller_cfg.get("teacher_checkpoint", None)
     distillation_weight = controller_cfg.get("distillation_weight", 0.0)
@@ -111,7 +111,7 @@ def main(config_path):
         print(f"Teacher model loaded from {teacher_ckpt}")
 
         
-    # STEP 1 — load backbone checkpoint if specified
+    # Load backbone weights from a fine-tuned checkpoint if specified
     if controller_cfg.get("load_backbone_from", None):
         checkpoint_path = controller_cfg["load_backbone_from"]
         state = torch.load(checkpoint_path, map_location=device, weights_only=True)
@@ -123,7 +123,8 @@ def main(config_path):
     image_size = config["data"].get("image_size", 224)
     params, flops = compute_model_stats(model, device, image_size)
 
-    # STEP 3 — criterion
+    # Loss function — the supervised-controller path optionally supports
+    # class weighting and focal loss to counter budget-label imbalance
     if supervised_training:
         class_weights = controller_cfg.get("class_weights", None)
         use_focal     = controller_cfg.get("use_focal_loss", False)
@@ -148,7 +149,7 @@ def main(config_path):
     else:
         criterion = nn.CrossEntropyLoss()
 
-    # STEP 4 — optimizer only over unfrozen params
+    # AdamW over all model parameters
     optimizer = optim.AdamW(
         model.parameters(),
         lr=config["training"]["learning_rate"],

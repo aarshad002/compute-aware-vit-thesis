@@ -22,7 +22,7 @@ def load_model(config_path, checkpoint_path, device):
     return model
 
 def main():
-    base_config = load_config(str(ROOT / "configs" / "dynamic_fixed_25.yaml"))
+    base_config = load_config(str(ROOT / "configs" / "dynamic" / "dynamic_fixed_25.yaml"))
     base_config["training"]["batch_size"] = 1
     base_config["data"]["debug_subset"] = None
     base_config["controller"] = {"enabled": False}
@@ -31,7 +31,8 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
-    # fine-tuned checkpoints on val data = honest labels (no memorisation)
+    # Fine-tuned checkpoints evaluated on val data yield honest labels
+    # (no memorisation of training samples)
     teacher_specs = [
         {
             "budget_idx": 0,

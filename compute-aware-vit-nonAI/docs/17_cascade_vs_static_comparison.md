@@ -1,6 +1,6 @@
 # 17 — Cascade vs Static: Cumulative-FLOPs Comparison
 
-This document compares every cascade we ran against the **single static (fixed-budget)
+This document compares every cascade I ran against the **single static (fixed-budget)
 models**, under correct **cumulative** FLOPs accounting (an image that exits at a stage
 has already run all earlier stages). "Exit-only" FLOPs (charging only the exit model)
 are shown too, but cumulative is the true cost.

@@ -35,7 +35,7 @@ def load_teacher_model(config_path, checkpoint_path, device):
 
 def main():
     # Base loader config only for dataset/dataloader
-    base_config = load_config(str(ROOT / "configs" / "dynamic_fixed_25.yaml"))
+    base_config = load_config(str(ROOT / "configs" / "dynamic" / "dynamic_fixed_25.yaml"))
     base_config["training"]["batch_size"] = 1
     base_config["data"]["debug_subset"] = None
     base_config["controller"] = {"enabled": False}
