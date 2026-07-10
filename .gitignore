@@ -1,28 +1,37 @@
-# Python
+# ── Python ─────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# datasets
+# ── Datasets (large / licensed — see each project's README) ──
 data/
 
-# Conda environments
+# ── Conda / virtual environments ───────────────────────
 .env
 .venv/
 venv/
 env/
 
-# Experiment outputs
-outputs/
-logs/
+# ── Model checkpoints (large, regenerable) ─────────────
+# Excluded everywhere (outputs/, saved_runs/, variant_*/checkpoints, ...).
+# Result JSONs and metrics.json are KEPT so exact numbers stay in the repo.
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# ── Large raw run transcripts ──────────────────────────
+# Keep small SLURM .out/.err logs and the logs/README.md; drop bulky *.log.
+*.log
 wandb/
 
-# Jupyter
+# ── Jupyter ────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# Editor / OS
+# ── Editor / OS / tooling ──────────────────────────────
 .vscode/
 .idea/
 .DS_Store
-Thumbs.db*.log
+Thumbs.db
+.claude/

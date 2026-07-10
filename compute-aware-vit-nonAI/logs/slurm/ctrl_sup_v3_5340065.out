@@ -1,0 +1,64 @@
+Job started on iris-179
+Config file: configs/dynamic_ctrl_supervised_v3.yaml
+GPU info:
+Tue Apr 21 11:59:04 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1A:00.0 Off |                    0 |
+| N/A   49C    P0             47W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_ctrl_supervised_v3_20260421_115914
+Files already downloaded and verified
+Files already downloaded and verified
+Loaded backbone from outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+Backbone frozen — training controller only
+Total parameters: 5.54M
+FLOPs per image: 0.95 GFLOPs
+Epoch [1/10] Train Loss: 0.6201 | Train Acc: 0.9540 | Val Loss: 3.2452 | Val Acc: 0.7583
+  Train budget counts: [49266, 479, 152, 103]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [2/10] Train Loss: 0.5766 | Train Acc: 0.9677 | Val Loss: 3.8605 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [3/10] Train Loss: 0.5713 | Train Acc: 0.9677 | Val Loss: 4.2354 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [4/10] Train Loss: 0.5784 | Train Acc: 0.9677 | Val Loss: 3.6115 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [5/10] Train Loss: 0.5760 | Train Acc: 0.9677 | Val Loss: 4.1645 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [6/10] Train Loss: 0.5741 | Train Acc: 0.9677 | Val Loss: 3.8906 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [7/10] Train Loss: 0.5718 | Train Acc: 0.9677 | Val Loss: 4.0436 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [8/10] Train Loss: 0.5794 | Train Acc: 0.9677 | Val Loss: 5.1635 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [9/10] Train Loss: 0.5818 | Train Acc: 0.9677 | Val Loss: 3.8810 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Epoch [10/10] Train Loss: 0.5796 | Train Acc: 0.9677 | Val Loss: 4.6516 | Val Acc: 0.7583
+  Train budget counts: [50000, 0, 0, 0]
+  Val budget counts: [10000, 0, 0, 0]
+Latency (sec/sample): 0.000257
+Throughput (samples/sec): 3893.35
+Best validation accuracy: 0.7583

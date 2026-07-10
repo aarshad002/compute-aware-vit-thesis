@@ -1,0 +1,30 @@
+# Requirements for compute-aware-vit (non-AI-assisted / RQ1)
+#
+# Verified against the live `thesis_env` conda environment (Python 3.11.15) and
+# cross-checked against every third-party import in src/ and scripts/.
+# Only packages the code actually imports are listed; pip resolves the rest.
+#
+# GPU note: torch is pinned to the CUDA 11.8 build. The extra index below is
+# required for pip to find the +cu118 wheels. For CPU-only, install
+# `torch==2.7.1 torchvision==0.22.1` from the default PyPI index instead.
+--extra-index-url https://download.pytorch.org/whl/cu118
+
+# --- Deep learning core ---
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+timm==1.0.26
+
+# --- FLOP / compute accounting ---
+fvcore==0.1.5.post20221221
+
+# --- Numerics & plotting ---
+numpy==2.4.3
+matplotlib==3.10.8
+
+# --- Config & utilities ---
+PyYAML==6.0.3
+tqdm==4.67.3
+
+# --- Docs -> PDF export (scripts/md_to_pdf.py) ---
+Markdown==3.10.2
+xhtml2pdf==0.2.17

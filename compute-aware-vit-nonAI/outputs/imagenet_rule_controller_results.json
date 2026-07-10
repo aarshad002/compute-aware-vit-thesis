@@ -1,0 +1,332 @@
+[
+  {
+    "accuracy": 0.79458,
+    "accuracy_pct": 79.458,
+    "avg_flops_g": 3.9404928,
+    "avg_latency": 0.0003731741428375244,
+    "throughput": 2679.7140669936184,
+    "budget_counts": {
+      "0.25": 13344,
+      "0.5": 23136,
+      "0.75": 13520
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.5,
+    "rule_low_threshold": 0.2
+  },
+  {
+    "accuracy": 0.79512,
+    "accuracy_pct": 79.512,
+    "avg_flops_g": 3.9654912,
+    "avg_latency": 0.00037597631931304934,
+    "throughput": 2659.741980098937,
+    "budget_counts": {
+      "0.25": 13344,
+      "0.5": 14208,
+      "0.75": 22448
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.5,
+    "rule_low_threshold": 0.3
+  },
+  {
+    "accuracy": 0.79556,
+    "accuracy_pct": 79.55600000000001,
+    "avg_flops_g": 3.986816,
+    "avg_latency": 0.0003852560472488403,
+    "throughput": 2595.6763226459907,
+    "budget_counts": {
+      "0.25": 13344,
+      "0.5": 6592,
+      "0.75": 30064
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.5,
+    "rule_low_threshold": 0.4
+  },
+  {
+    "accuracy": 0.79488,
+    "accuracy_pct": 79.488,
+    "avg_flops_g": 3.9548288,
+    "avg_latency": 0.00038178269386291504,
+    "throughput": 2619.2910681254334,
+    "budget_counts": {
+      "0.25": 8224,
+      "0.5": 28256,
+      "0.75": 13520
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.6,
+    "rule_low_threshold": 0.2
+  },
+  {
+    "accuracy": 0.79542,
+    "accuracy_pct": 79.542,
+    "avg_flops_g": 3.9798272,
+    "avg_latency": 0.00038737876892089843,
+    "throughput": 2581.452780144998,
+    "budget_counts": {
+      "0.25": 8224,
+      "0.5": 19328,
+      "0.75": 22448
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.6,
+    "rule_low_threshold": 0.3
+  },
+  {
+    "accuracy": 0.79586,
+    "accuracy_pct": 79.586,
+    "avg_flops_g": 4.001152,
+    "avg_latency": 0.00038810062885284426,
+    "throughput": 2576.651326115653,
+    "budget_counts": {
+      "0.25": 8224,
+      "0.5": 11712,
+      "0.75": 30064
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.6,
+    "rule_low_threshold": 0.4
+  },
+  {
+    "accuracy": 0.796,
+    "accuracy_pct": 79.60000000000001,
+    "avg_flops_g": 4.0196096,
+    "avg_latency": 0.0003919295024871826,
+    "throughput": 2551.4792677101495,
+    "budget_counts": {
+      "0.25": 8224,
+      "0.5": 5120,
+      "0.75": 36656
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.6,
+    "rule_low_threshold": 0.5
+  },
+  {
+    "accuracy": 0.79542,
+    "accuracy_pct": 79.542,
+    "avg_flops_g": 3.9688064,
+    "avg_latency": 0.0003827642107009888,
+    "throughput": 2612.5744571798255,
+    "budget_counts": {
+      "0.25": 3232,
+      "0.5": 33248,
+      "0.75": 13520
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.7,
+    "rule_low_threshold": 0.2
+  },
+  {
+    "accuracy": 0.79596,
+    "accuracy_pct": 79.596,
+    "avg_flops_g": 3.9938048,
+    "avg_latency": 0.00038475257396698,
+    "throughput": 2599.072930661723,
+    "budget_counts": {
+      "0.25": 3232,
+      "0.5": 24320,
+      "0.75": 22448
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.7,
+    "rule_low_threshold": 0.3
+  },
+  {
+    "accuracy": 0.7964,
+    "accuracy_pct": 79.64,
+    "avg_flops_g": 4.0151296,
+    "avg_latency": 0.00038978246688842774,
+    "throughput": 2565.5335602518066,
+    "budget_counts": {
+      "0.25": 3232,
+      "0.5": 16704,
+      "0.75": 30064
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.7,
+    "rule_low_threshold": 0.4
+  },
+  {
+    "accuracy": 0.79654,
+    "accuracy_pct": 79.654,
+    "avg_flops_g": 4.0335872,
+    "avg_latency": 0.00039274838924407957,
+    "throughput": 2546.1593920848254,
+    "budget_counts": {
+      "0.25": 3232,
+      "0.5": 10112,
+      "0.75": 36656
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.7,
+    "rule_low_threshold": 0.5
+  },
+  {
+    "accuracy": 0.79654,
+    "accuracy_pct": 79.654,
+    "avg_flops_g": 4.0479232,
+    "avg_latency": 0.0003945097827911377,
+    "throughput": 2534.7913882516377,
+    "budget_counts": {
+      "0.25": 3232,
+      "0.5": 4992,
+      "0.75": 41776
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.7,
+    "rule_low_threshold": 0.6
+  },
+  {
+    "accuracy": 0.79558,
+    "accuracy_pct": 79.55799999999999,
+    "avg_flops_g": 3.9748096,
+    "avg_latency": 0.00038494045734405516,
+    "throughput": 2597.804364081721,
+    "budget_counts": {
+      "0.25": 1088,
+      "0.5": 35392,
+      "0.75": 13520
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.8,
+    "rule_low_threshold": 0.2
+  },
+  {
+    "accuracy": 0.79612,
+    "accuracy_pct": 79.61200000000001,
+    "avg_flops_g": 3.999808,
+    "avg_latency": 0.00038735081672668456,
+    "throughput": 2581.6390641706116,
+    "budget_counts": {
+      "0.25": 1088,
+      "0.5": 26464,
+      "0.75": 22448
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.8,
+    "rule_low_threshold": 0.3
+  },
+  {
+    "accuracy": 0.79656,
+    "accuracy_pct": 79.656,
+    "avg_flops_g": 4.0211328,
+    "avg_latency": 0.00039067853927612304,
+    "throughput": 2559.6491730845287,
+    "budget_counts": {
+      "0.25": 1088,
+      "0.5": 18848,
+      "0.75": 30064
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.8,
+    "rule_low_threshold": 0.4
+  },
+  {
+    "accuracy": 0.7967,
+    "accuracy_pct": 79.67,
+    "avg_flops_g": 4.0395904,
+    "avg_latency": 0.0003925600910186768,
+    "throughput": 2547.3807013979504,
+    "budget_counts": {
+      "0.25": 1088,
+      "0.5": 12256,
+      "0.75": 36656
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.8,
+    "rule_low_threshold": 0.5
+  },
+  {
+    "accuracy": 0.7967,
+    "accuracy_pct": 79.67,
+    "avg_flops_g": 4.0539264,
+    "avg_latency": 0.00039525983333587645,
+    "throughput": 2529.9813329381204,
+    "budget_counts": {
+      "0.25": 1088,
+      "0.5": 7136,
+      "0.75": 41776
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.8,
+    "rule_low_threshold": 0.6
+  },
+  {
+    "accuracy": 0.79558,
+    "accuracy_pct": 79.55799999999999,
+    "avg_flops_g": 3.9773184,
+    "avg_latency": 0.0003839853620529175,
+    "throughput": 2604.265940382875,
+    "budget_counts": {
+      "0.25": 192,
+      "0.5": 36288,
+      "0.75": 13520
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.9,
+    "rule_low_threshold": 0.2
+  },
+  {
+    "accuracy": 0.79612,
+    "accuracy_pct": 79.61200000000001,
+    "avg_flops_g": 4.0023168,
+    "avg_latency": 0.00038730501651763915,
+    "throughput": 2581.944352260815,
+    "budget_counts": {
+      "0.25": 192,
+      "0.5": 27360,
+      "0.75": 22448
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.9,
+    "rule_low_threshold": 0.3
+  },
+  {
+    "accuracy": 0.79656,
+    "accuracy_pct": 79.656,
+    "avg_flops_g": 4.0236416,
+    "avg_latency": 0.00039225155353546143,
+    "throughput": 2549.3844217741134,
+    "budget_counts": {
+      "0.25": 192,
+      "0.5": 19744,
+      "0.75": 30064
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.9,
+    "rule_low_threshold": 0.4
+  },
+  {
+    "accuracy": 0.7967,
+    "accuracy_pct": 79.67,
+    "avg_flops_g": 4.0420992,
+    "avg_latency": 0.00039271827697753907,
+    "throughput": 2546.3546226986364,
+    "budget_counts": {
+      "0.25": 192,
+      "0.5": 13152,
+      "0.75": 36656
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.9,
+    "rule_low_threshold": 0.5
+  },
+  {
+    "accuracy": 0.7967,
+    "accuracy_pct": 79.67,
+    "avg_flops_g": 4.0564352,
+    "avg_latency": 0.000396147518157959,
+    "throughput": 2524.312166967211,
+    "budget_counts": {
+      "0.25": 192,
+      "0.5": 8032,
+      "0.75": 41776
+    },
+    "total_images": 50000,
+    "rule_high_threshold": 0.9,
+    "rule_low_threshold": 0.6
+  }
+]

@@ -1,0 +1,81 @@
+nohup: ignoring input
+/home/arooba/miniconda3/envs/thesis_env/lib/python3.11/site-packages/torchvision/datasets/cifar.py:83: VisibleDeprecationWarning: dtype(): align should be passed as Python or NumPy boolean but got `align=0`. Did you mean to pass a tuple to create a subarray type? (Deprecated NumPy 2.4)
+  entry = pickle.load(f, encoding="latin1")
+Unsupported operator aten::add encountered 25 time(s)
+Unsupported operator aten::scaled_dot_product_attention encountered 12 time(s)
+Unsupported operator aten::gelu encountered 12 time(s)
+Unsupported operator aten::linalg_vector_norm encountered 1 time(s)
+Unsupported operator aten::topk encountered 1 time(s)
+The following submodules of the model were never called during the trace of the graph. They may be unused, or they were accessed by direct calls to .forward() or via other python methods. In the latter case they will have zeros for statistics, though their statistics will still contribute to their parent calling module.
+backbone.blocks.0.attn.attn_drop, backbone.blocks.1.attn.attn_drop, backbone.blocks.10.attn.attn_drop, backbone.blocks.11.attn.attn_drop, backbone.blocks.2.attn.attn_drop, backbone.blocks.3.attn.attn_drop, backbone.blocks.4.attn.attn_drop, backbone.blocks.5.attn.attn_drop, backbone.blocks.6.attn.attn_drop, backbone.blocks.7.attn.attn_drop, backbone.blocks.8.attn.attn_drop, backbone.blocks.9.attn.attn_drop, backbone.head_drop, controller, controller.net, controller.net.0, controller.net.1, controller.net.2, controller.net.3
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_ctrl_conf_v1_20260423_105714
+WeightedRandomSampler enabled — budget class counts: {0: 7583, 1: 992, 2: 390, 3: 1035}
+Effective class weights: {0: 0.33, 1: 2.52, 2: 6.41, 3: 2.42}
+Loaded backbone from outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+Backbone frozen — training controller only
+Total parameters: 5.54M
+FLOPs per image: 1.08 GFLOPs
+Epoch [1/20] Train Loss: 1.5963 | Train Acc: 0.2458 | Val Loss: 1.3931 | Val Acc: 0.0403
+  Train budget counts: [3120, 2131, 2215, 2534]
+  Val budget counts: [23, 0, 9977, 0]
+Epoch [2/20] Train Loss: 1.3904 | Train Acc: 0.2536 | Val Loss: 1.3900 | Val Acc: 0.0992
+  Train budget counts: [2350, 1302, 3474, 2874]
+  Val budget counts: [0, 10000, 0, 0]
+Epoch [3/20] Train Loss: 1.3872 | Train Acc: 0.2557 | Val Loss: 1.4167 | Val Acc: 0.1000
+  Train budget counts: [948, 1676, 1613, 5763]
+  Val budget counts: [0, 9367, 0, 633]
+Epoch [4/20] Train Loss: 1.3872 | Train Acc: 0.2415 | Val Loss: 1.3998 | Val Acc: 0.0660
+  Train budget counts: [889, 585, 2193, 6333]
+  Val budget counts: [0, 3, 5606, 4391]
+Epoch [5/20] Train Loss: 1.3864 | Train Acc: 0.2485 | Val Loss: 1.3784 | Val Acc: 0.3953
+  Train budget counts: [2681, 173, 770, 6376]
+  Val budget counts: [4952, 30, 4972, 46]
+Epoch [6/20] Train Loss: 1.3864 | Train Acc: 0.2499 | Val Loss: 1.3909 | Val Acc: 0.1035
+  Train budget counts: [1870, 356, 7197, 577]
+  Val budget counts: [0, 4, 0, 9996]
+Epoch [7/20] Train Loss: 1.3863 | Train Acc: 0.2560 | Val Loss: 1.3853 | Val Acc: 0.1030
+  Train budget counts: [0, 1472, 393, 8135]
+  Val budget counts: [0, 17, 5, 9978]
+Epoch [8/20] Train Loss: 1.3861 | Train Acc: 0.2505 | Val Loss: 1.3729 | Val Acc: 0.7562
+  Train budget counts: [3758, 1119, 264, 4859]
+  Val budget counts: [9970, 18, 0, 12]
+Epoch [9/20] Train Loss: 1.3861 | Train Acc: 0.2576 | Val Loss: 1.3934 | Val Acc: 0.0992
+  Train budget counts: [6504, 3397, 0, 99]
+  Val budget counts: [0, 10000, 0, 0]
+Epoch [10/20] Train Loss: 1.3867 | Train Acc: 0.2534 | Val Loss: 1.3784 | Val Acc: 0.7535
+  Train budget counts: [3324, 5846, 0, 830]
+  Val budget counts: [9941, 59, 0, 0]
+Epoch [11/20] Train Loss: 1.3862 | Train Acc: 0.2550 | Val Loss: 1.3732 | Val Acc: 0.6707
+  Train budget counts: [2516, 864, 0, 6620]
+  Val budget counts: [8753, 1247, 0, 0]
+Epoch [12/20] Train Loss: 1.3860 | Train Acc: 0.2549 | Val Loss: 1.3784 | Val Acc: 0.6892
+  Train budget counts: [8710, 1255, 0, 35]
+  Val budget counts: [9029, 820, 0, 151]
+Epoch [13/20] Train Loss: 1.3863 | Train Acc: 0.2542 | Val Loss: 1.3873 | Val Acc: 0.0389
+  Train budget counts: [1417, 803, 4092, 3688]
+  Val budget counts: [0, 166, 9823, 11]
+Epoch [14/20] Train Loss: 1.3859 | Train Acc: 0.2585 | Val Loss: 1.3998 | Val Acc: 0.0734
+  Train budget counts: [53, 1365, 8515, 67]
+  Val budget counts: [0, 5980, 4016, 4]
+Epoch [15/20] Train Loss: 1.3861 | Train Acc: 0.2478 | Val Loss: 1.3815 | Val Acc: 0.1015
+  Train budget counts: [4930, 812, 4100, 158]
+  Val budget counts: [0, 228, 0, 9772]
+Epoch [16/20] Train Loss: 1.3861 | Train Acc: 0.2519 | Val Loss: 1.3799 | Val Acc: 0.7450
+  Train budget counts: [8307, 703, 0, 990]
+  Val budget counts: [9823, 84, 2, 91]
+Epoch [17/20] Train Loss: 1.3863 | Train Acc: 0.2560 | Val Loss: 1.3742 | Val Acc: 0.7526
+  Train budget counts: [8903, 653, 5, 439]
+  Val budget counts: [9924, 45, 0, 31]
+Epoch [18/20] Train Loss: 1.3863 | Train Acc: 0.2494 | Val Loss: 1.3935 | Val Acc: 0.0390
+  Train budget counts: [826, 52, 9047, 75]
+  Val budget counts: [0, 21, 9946, 33]
+Epoch [19/20] Train Loss: 1.3862 | Train Acc: 0.2482 | Val Loss: 1.3809 | Val Acc: 0.7498
+  Train budget counts: [1451, 2388, 6125, 36]
+  Val budget counts: [9874, 26, 0, 100]
+Epoch [20/20] Train Loss: 1.3864 | Train Acc: 0.2498 | Val Loss: 1.3924 | Val Acc: 0.0392
+  Train budget counts: [3649, 2312, 2492, 1547]
+  Val budget counts: [0, 29, 9971, 0]
+Latency (sec/sample): 0.000132
+Throughput (samples/sec): 7575.12
+Best validation accuracy: 0.7562

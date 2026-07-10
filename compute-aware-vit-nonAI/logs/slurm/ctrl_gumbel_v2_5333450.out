@@ -1,0 +1,64 @@
+Job started on iris-175
+Config file: configs/dynamic_ctrl_gumbel_v2.yaml
+GPU info:
+Mon Apr 20 13:34:44 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1D:00.0 Off |                    0 |
+| N/A   42C    P0             44W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_ctrl_gumbel_v2_20260420_133451
+Files already downloaded and verified
+Files already downloaded and verified
+Loaded backbone from outputs/dynamic_fixed_50_20260331_125625/best_model.pt
+Backbone frozen — training controller only
+Total parameters: 5.54M
+FLOPs per image: 0.95 GFLOPs
+Epoch [1/10] Train Loss: 0.2072 | Train Acc: 0.9472 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [49599, 35, 273, 93] | Train avg expected keep ratio: 0.2543
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [2/10] Train Loss: 0.2110 | Train Acc: 0.9461 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [3/10] Train Loss: 0.2076 | Train Acc: 0.9470 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [4/10] Train Loss: 0.2076 | Train Acc: 0.9467 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [5/10] Train Loss: 0.2071 | Train Acc: 0.9472 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [6/10] Train Loss: 0.2076 | Train Acc: 0.9469 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [7/10] Train Loss: 0.2101 | Train Acc: 0.9462 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [8/10] Train Loss: 0.2112 | Train Acc: 0.9465 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [9/10] Train Loss: 0.2071 | Train Acc: 0.9470 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [10/10] Train Loss: 0.2091 | Train Acc: 0.9465 | Val Loss: 1.2006 | Val Acc: 0.7414
+  Train budget counts: [50000, 0, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0, 0] | Val avg expected keep ratio: 0.2500
+Latency (sec/sample): 0.000254
+Throughput (samples/sec): 3938.39
+Best validation accuracy: 0.7414

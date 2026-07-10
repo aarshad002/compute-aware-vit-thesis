@@ -1,0 +1,47 @@
+Job started on iris-179
+Config file: configs/dynamic_controller_train.yaml
+GPU info:
+Wed Apr  8 14:53:59 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1E:00.0 Off |                    0 |
+| N/A   41C    P0             46W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_controller_train_20260408_145406
+Files already downloaded and verified
+Files already downloaded and verified
+Total parameters: 5.54M
+FLOPs per image: 0.00 GFLOPs
+Epoch [1/5] Train Loss: 3.5510 | Train Acc: 0.1498 | Val Loss: 3.0202 | Val Acc: 0.2356
+  Train budget counts: [14063, 17767, 18170] | Train avg expected keep ratio: 0.5005
+  Val budget counts: [167, 2, 9831] | Val avg expected keep ratio: 0.5013
+Epoch [2/5] Train Loss: 2.7897 | Train Acc: 0.2869 | Val Loss: 2.6135 | Val Acc: 0.3266
+  Train budget counts: [15056, 14419, 20525] | Train avg expected keep ratio: 0.5000
+  Val budget counts: [0, 8792, 1208] | Val avg expected keep ratio: 0.5006
+Epoch [3/5] Train Loss: 2.3900 | Train Acc: 0.3691 | Val Loss: 2.3782 | Val Acc: 0.3806
+  Train budget counts: [15581, 14213, 20206] | Train avg expected keep ratio: 0.5000
+  Val budget counts: [2415, 0, 7585] | Val avg expected keep ratio: 0.5001
+Epoch [4/5] Train Loss: 2.0920 | Train Acc: 0.4324 | Val Loss: 2.1881 | Val Acc: 0.4220
+  Train budget counts: [15739, 13604, 20657] | Train avg expected keep ratio: 0.5000
+  Val budget counts: [9982, 18, 0] | Val avg expected keep ratio: 0.4953
+Epoch [5/5] Train Loss: 1.8343 | Train Acc: 0.4951 | Val Loss: 2.0611 | Val Acc: 0.4470
+  Train budget counts: [15850, 13796, 20354] | Train avg expected keep ratio: 0.5000
+  Val budget counts: [9981, 0, 19] | Val avg expected keep ratio: 0.4991
+Latency (sec/sample): 0.004979
+Throughput (samples/sec): 200.84
+Best validation accuracy: 0.4470

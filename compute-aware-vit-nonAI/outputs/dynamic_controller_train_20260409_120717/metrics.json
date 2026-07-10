@@ -1,0 +1,117 @@
+{
+  "model_name": "deit_tiny_patch16_224",
+  "num_classes": 100,
+  "image_size": 224,
+  "parameters": 5544103,
+  "parameters_millions": 5.5441,
+  "flops": 0,
+  "flops_giga": 0.0,
+  "best_val_acc": 0.4787,
+  "latency": 0.005188857579231263,
+  "throughput": 192.72064895412905,
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 3.4811292760687134,
+      "train_acc": 0.16502,
+      "val_loss": 2.917840055712126,
+      "val_acc": 0.2677,
+      "train_budget_counts": [
+        3,
+        1,
+        49996
+      ],
+      "train_avg_keep_ratio": 0.749965,
+      "val_budget_counts": [
+        0,
+        0,
+        10000
+      ],
+      "val_avg_keep_ratio": 0.75
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.6542730771293397,
+      "train_acc": 0.31708,
+      "val_loss": 2.4836170089427148,
+      "val_acc": 0.3585,
+      "train_budget_counts": [
+        0,
+        0,
+        50000
+      ],
+      "train_avg_keep_ratio": 0.75,
+      "val_budget_counts": [
+        0,
+        0,
+        10000
+      ],
+      "val_avg_keep_ratio": 0.75
+    },
+    {
+      "epoch": 3,
+      "train_loss": 2.223609781477277,
+      "train_acc": 0.40892,
+      "val_loss": 2.173369801981098,
+      "val_acc": 0.4241,
+      "train_budget_counts": [
+        0,
+        0,
+        50000
+      ],
+      "train_avg_keep_ratio": 0.75,
+      "val_budget_counts": [
+        0,
+        0,
+        10000
+      ],
+      "val_avg_keep_ratio": 0.75
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.9040335351766111,
+      "train_acc": 0.48236,
+      "val_loss": 1.9903213902088348,
+      "val_acc": 0.4655,
+      "train_budget_counts": [
+        0,
+        0,
+        50000
+      ],
+      "train_avg_keep_ratio": 0.75,
+      "val_budget_counts": [
+        0,
+        0,
+        10000
+      ],
+      "val_avg_keep_ratio": 0.75
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.6608886867823618,
+      "train_acc": 0.53618,
+      "val_loss": 1.9324529099478285,
+      "val_acc": 0.4787,
+      "train_budget_counts": [
+        0,
+        0,
+        50000
+      ],
+      "train_avg_keep_ratio": 0.75,
+      "val_budget_counts": [
+        0,
+        0,
+        10000
+      ],
+      "val_avg_keep_ratio": 0.75
+    }
+  ],
+  "pruning": {
+    "enabled": true,
+    "prune_layer": 6,
+    "patch_tokens_before_prune": 196,
+    "patch_tokens_kept": null,
+    "total_tokens_after_prune": null,
+    "controller_enabled": true
+  }
+}

@@ -1,0 +1,52 @@
+Job started on iris-178
+Config file: configs/dynamic_fixed_25.yaml
+GPU info:
+Tue Mar 31 14:24:06 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1C:00.0 Off |                    0 |
+| N/A   39C    P0             46W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_fixed_25_20260331_142414
+Files already downloaded and verified
+Files already downloaded and verified
+Total parameters: 5.54M
+FLOPs per image: 0.69 GFLOPs
+Epoch [1/20] Train Loss: 1.9905 | Train Acc: 0.4982 | Val Loss: 1.1743 | Val Acc: 0.6675
+Epoch [2/20] Train Loss: 0.9708 | Train Acc: 0.7179 | Val Loss: 0.9830 | Val Acc: 0.7125
+Epoch [3/20] Train Loss: 0.7288 | Train Acc: 0.7828 | Val Loss: 0.9342 | Val Acc: 0.7278
+Epoch [4/20] Train Loss: 0.5804 | Train Acc: 0.8237 | Val Loss: 0.8932 | Val Acc: 0.7437
+Epoch [5/20] Train Loss: 0.4748 | Train Acc: 0.8535 | Val Loss: 0.8756 | Val Acc: 0.7543
+Epoch [6/20] Train Loss: 0.3844 | Train Acc: 0.8800 | Val Loss: 0.9225 | Val Acc: 0.7465
+Epoch [7/20] Train Loss: 0.3160 | Train Acc: 0.9002 | Val Loss: 0.8990 | Val Acc: 0.7552
+Epoch [8/20] Train Loss: 0.2840 | Train Acc: 0.9104 | Val Loss: 0.9451 | Val Acc: 0.7514
+Epoch [9/20] Train Loss: 0.2234 | Train Acc: 0.9287 | Val Loss: 0.9677 | Val Acc: 0.7482
+Epoch [10/20] Train Loss: 0.2056 | Train Acc: 0.9351 | Val Loss: 0.9621 | Val Acc: 0.7547
+Epoch [11/20] Train Loss: 0.1860 | Train Acc: 0.9398 | Val Loss: 1.0293 | Val Acc: 0.7466
+Epoch [12/20] Train Loss: 0.1698 | Train Acc: 0.9455 | Val Loss: 0.9808 | Val Acc: 0.7583
+Epoch [13/20] Train Loss: 0.1535 | Train Acc: 0.9512 | Val Loss: 1.0691 | Val Acc: 0.7427
+Epoch [14/20] Train Loss: 0.1310 | Train Acc: 0.9585 | Val Loss: 1.1136 | Val Acc: 0.7451
+Epoch [15/20] Train Loss: 0.1466 | Train Acc: 0.9529 | Val Loss: 1.0897 | Val Acc: 0.7487
+Epoch [16/20] Train Loss: 0.1217 | Train Acc: 0.9614 | Val Loss: 1.1233 | Val Acc: 0.7449
+Epoch [17/20] Train Loss: 0.1209 | Train Acc: 0.9616 | Val Loss: 1.0949 | Val Acc: 0.7521
+Epoch [18/20] Train Loss: 0.1156 | Train Acc: 0.9635 | Val Loss: 1.0927 | Val Acc: 0.7557
+Epoch [19/20] Train Loss: 0.1025 | Train Acc: 0.9679 | Val Loss: 1.1075 | Val Acc: 0.7535
+Epoch [20/20] Train Loss: 0.1041 | Train Acc: 0.9662 | Val Loss: 1.1354 | Val Acc: 0.7494
+Latency (sec/sample): 0.000227
+Throughput (samples/sec): 4405.50
+Best validation accuracy: 0.7583

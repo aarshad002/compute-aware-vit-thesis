@@ -1,0 +1,25 @@
+experiment_name: imagenet_fixed75_eval_l3
+seed: 42
+
+data:
+  dataset_name: imagenet
+  data_dir: data/imagenet/val
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  debug_subset: null
+
+model:
+  type: dynamic
+  name: deit_small_patch16_224
+  num_classes: 1000
+  pretrained: true
+
+pruning:
+  enabled: true
+  prune_layer: 3        # ← layer 3 (was 6): 9 of 12 layers run on the pruned sequence
+  score_method: l2
+  keep_ratio: 0.75
+
+controller:
+  enabled: false

@@ -1,0 +1,85 @@
+Job started on iris-177
+Script file: scripts/build_budget_labels_train_v3.py
+GPU info:
+Tue Apr 21 11:05:03 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1C:00.0 Off |                    0 |
+| N/A   38C    P0             43W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Files already downloaded and verified
+Files already downloaded and verified
+Using device: cuda
+
+Preparing model for budget 0.25
+  Using pretrained ImageNet weights only (no fine-tuned ckpt)
+  Budget 0.25 | sample 0 | labels so far: 11
+  Budget 0.25 | sample 35000 | labels so far: 37
+  Budget 0.25 | sample 45000 | labels so far: 269
+  Budget 0.25 | sample 15000 | labels so far: 289
+  Budget 0.25 | sample 10000 | labels so far: 300
+  Budget 0.25 | sample 5000 | labels so far: 340
+  Budget 0.25 | sample 40000 | labels so far: 358
+  Budget 0.25 | sample 30000 | labels so far: 379
+  Budget 0.25 | sample 25000 | labels so far: 415
+  Budget 0.25 | sample 20000 | labels so far: 442
+Budget 0.25 done. Labels assigned so far: 476
+
+Preparing model for budget 0.50
+  Using pretrained ImageNet weights only (no fine-tuned ckpt)
+  Budget 0.50 | sample 10000 | labels so far: 532
+  Budget 0.50 | sample 30000 | labels so far: 535
+  Budget 0.50 | sample 35000 | labels so far: 620
+  Budget 0.50 | sample 15000 | labels so far: 623
+  Budget 0.50 | sample 0 | labels so far: 631
+  Budget 0.50 | sample 40000 | labels so far: 654
+  Budget 0.50 | sample 20000 | labels so far: 656
+  Budget 0.50 | sample 5000 | labels so far: 682
+  Budget 0.50 | sample 25000 | labels so far: 769
+  Budget 0.50 | sample 45000 | labels so far: 967
+Budget 0.50 done. Labels assigned so far: 979
+
+Preparing model for budget 0.75
+  Using pretrained ImageNet weights only (no fine-tuned ckpt)
+  Budget 0.75 | sample 15000 | labels so far: 1020
+  Budget 0.75 | sample 0 | labels so far: 1107
+  Budget 0.75 | sample 45000 | labels so far: 1113
+  Budget 0.75 | sample 10000 | labels so far: 1166
+  Budget 0.75 | sample 5000 | labels so far: 1291
+  Budget 0.75 | sample 20000 | labels so far: 1333
+  Budget 0.75 | sample 30000 | labels so far: 1366
+  Budget 0.75 | sample 25000 | labels so far: 1375
+  Budget 0.75 | sample 40000 | labels so far: 1396
+  Budget 0.75 | sample 35000 | labels so far: 1458
+Budget 0.75 done. Labels assigned so far: 1498
+
+Preparing model for budget 1.00
+  Using pretrained ImageNet weights only (no fine-tuned ckpt)
+  Budget 1.00 | sample 35000 | labels so far: 1531
+  Budget 1.00 | sample 40000 | labels so far: 1567
+  Budget 1.00 | sample 5000 | labels so far: 1614
+  Budget 1.00 | sample 45000 | labels so far: 1642
+  Budget 1.00 | sample 30000 | labels so far: 1664
+  Budget 1.00 | sample 0 | labels so far: 1743
+  Budget 1.00 | sample 20000 | labels so far: 1773
+  Budget 1.00 | sample 10000 | labels so far: 1774
+  Budget 1.00 | sample 25000 | labels so far: 1832
+  Budget 1.00 | sample 15000 | labels so far: 1836
+Budget 1.00 done. Labels assigned so far: 1916
+
+Saved to: /mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/data/budget_labels_train_v3.json
+Total: 50000

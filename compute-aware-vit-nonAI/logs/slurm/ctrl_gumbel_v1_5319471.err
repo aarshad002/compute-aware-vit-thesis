@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 276, in <module>
+    main(args.config)
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 91, in main
+    train_loader, val_loader = build_dataloaders(config)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/datasets/cifar.py", line 39, in build_dataloaders
+    dataset_name = config["data"]["dataset_name"].lower()
+                   ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'dataset_name'

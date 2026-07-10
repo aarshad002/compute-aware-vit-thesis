@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 189, in <module>
+    main(args.config)
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 80, in main
+    params, flops = compute_model_stats(model, device, image_size)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 25, in compute_model_stats
+    total_flops = flops.total()
+                  ^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/fvcore/nn/jit_analysis.py", line 248, in total
+    stats = self._analyze()
+            ^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/fvcore/nn/jit_analysis.py", line 551, in _analyze
+    graph = _get_scoped_trace_graph(self._model, self._inputs, self._aliases)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/fvcore/nn/jit_analysis.py", line 176, in _get_scoped_trace_graph
+    graph, _ = _get_trace_graph(module, inputs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/jit/_trace.py", line 1310, in _get_trace_graph
+    outs = ONNXTracedModule(
+           ^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/jit/_trace.py", line 138, in forward
+    graph, out = torch._C._create_graph_by_tracing(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/jit/_trace.py", line 129, in wrapper
+    outs.append(self.inner(*trace_inputs))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/module.py", line 1582, in _call_impl
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/module.py", line 1522, in _slow_forward
+    result = self.forward(*input, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/models/vit_dynamic.py", line 157, in forward
+    budget_indices = torch.argmax(budget_probs, dim=1)
+                                  ^^^^^^^^^^^^
+NameError: name 'budget_probs' is not defined

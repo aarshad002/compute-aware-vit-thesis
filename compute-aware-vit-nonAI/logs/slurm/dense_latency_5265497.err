@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 166, in <module>
+    main(args.config)
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 62, in main
+    config = load_config(config_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/utils/config.py", line 12, in load_config
+    raise FileNotFoundError(f"Config file not found: {config_path}")
+FileNotFoundError: Config file not found: configs/baseline_dense_vit.yaml

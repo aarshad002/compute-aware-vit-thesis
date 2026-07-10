@@ -1,0 +1,32 @@
+{
+  "experiment_name": "imagenet_fixed25_eval",
+  "model_name": "deit_small_patch16_224",
+  "model_type": "dynamic",
+  "num_classes": 1000,
+  "pretrained": true,
+  "data_dir": "data/imagenet/val",
+  "debug_subset": null,
+  "top1_accuracy": 0.71298,
+  "top1_accuracy_percent": 71.298,
+  "parameters": 22052268,
+  "parameters_millions": 22.0523,
+  "flops": 2686331136,
+  "flops_giga": 2.6863,
+  "latency_sec_per_sample": 0.0002729000896215439,
+  "throughput_samples_per_sec": 3664.344710867606,
+  "token_stats": {
+    "patch_tokens_before_prune": 196,
+    "patch_tokens_kept": 49,
+    "total_tokens_after_prune": 50,
+    "keep_ratio": 0.25
+  },
+  "pruning": {
+    "enabled": true,
+    "prune_layer": 6,
+    "score_method": "l2",
+    "keep_ratio": 0.25
+  },
+  "controller": {
+    "enabled": false
+  }
+}

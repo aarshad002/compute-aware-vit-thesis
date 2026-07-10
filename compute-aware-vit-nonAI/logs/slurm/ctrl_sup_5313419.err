@@ -1,0 +1,41 @@
+Unsupported operator aten::add encountered 25 time(s)
+Unsupported operator aten::scaled_dot_product_attention encountered 12 time(s)
+Unsupported operator aten::gelu encountered 12 time(s)
+Unsupported operator aten::linalg_vector_norm encountered 1 time(s)
+Unsupported operator aten::topk encountered 1 time(s)
+The following submodules of the model were never called during the trace of the graph. They may be unused, or they were accessed by direct calls to .forward() or via other python methods. In the latter case they will have zeros for statistics, though their statistics will still contribute to their parent calling module.
+backbone.blocks.0.attn.attn_drop, backbone.blocks.1.attn.attn_drop, backbone.blocks.10.attn.attn_drop, backbone.blocks.11.attn.attn_drop, backbone.blocks.2.attn.attn_drop, backbone.blocks.3.attn.attn_drop, backbone.blocks.4.attn.attn_drop, backbone.blocks.5.attn.attn_drop, backbone.blocks.6.attn.attn_drop, backbone.blocks.7.attn.attn_drop, backbone.blocks.8.attn.attn_drop, backbone.blocks.9.attn.attn_drop, backbone.head_drop, controller, controller.net, controller.net.0, controller.net.1, controller.net.2
+Traceback (most recent call last):
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 266, in <module>
+    main(args.config)
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/train.py", line 115, in main
+    train_loss, train_acc, train_budget_counts = train_controller_one_epoch(
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/training/engine.py", line 130, in train_controller_one_epoch
+    for batch in loader:
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/dataloader.py", line 631, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/dataloader.py", line 1346, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/dataloader.py", line 1372, in _process_data
+    data.reraise()
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/_utils.py", line 705, in reraise
+    raise exception
+KeyError: Caught KeyError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/mnt/aiongpfs/users/aarshad/compute-aware-vit-thesis/src/datasets/cifar.py", line 29, in __getitem__
+    budget_target = self.budget_labels[original_idx]
+                    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+KeyError: 40455
+

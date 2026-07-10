@@ -1,0 +1,28 @@
+{
+  "experiment_name": "imagenet_dense_eval",
+  "model_name": "deit_small_patch16_224",
+  "model_type": "dense",
+  "num_classes": 1000,
+  "pretrained": true,
+  "data_dir": "data/imagenet/val",
+  "debug_subset": null,
+  "top1_accuracy": 0.79714,
+  "top1_accuracy_percent": 79.714,
+  "parameters": 22050664,
+  "parameters_millions": 22.0507,
+  "flops": 4250674560,
+  "flops_giga": 4.2507,
+  "latency_sec_per_sample": 0.0003893917053937912,
+  "throughput_samples_per_sec": 2568.1081187610343,
+  "token_stats": {
+    "patch_tokens_before_prune": 196,
+    "patch_tokens_kept": 196,
+    "total_tokens_after_prune": 197,
+    "keep_ratio": 1.0
+  },
+  "pruning": {
+    "enabled": false,
+    "keep_ratio": 1.0
+  },
+  "controller": {}
+}

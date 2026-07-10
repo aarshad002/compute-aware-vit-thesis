@@ -1,0 +1,92 @@
+Job started on iris-193
+Config file: configs/dynamic_controller_supervised.yaml
+GPU info:
+Mon Apr 13 16:04:27 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-32GB           On  |   00000000:1E:00.0 Off |                    0 |
+| N/A   47C    P0             61W /  300W |     310MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    949175      C   /usr/bin/ollama                               306MiB |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_controller_supervised_20260413_160435
+Files already downloaded and verified
+Files already downloaded and verified
+Total parameters: 5.54M
+FLOPs per image: 0.95 GFLOPs
+Epoch [1/20] Train Loss: 1.5401 | Train Acc: 0.1954 | Val Loss: 1.4436 | Val Acc: 0.2829
+  Train budget counts: [0, 0, 2232, 56]
+  Val budget counts: [0, 0, 240, 163]
+Epoch [2/20] Train Loss: 1.4263 | Train Acc: 0.2858 | Val Loss: 1.4241 | Val Acc: 0.2457
+  Train budget counts: [0, 0, 812, 1476]
+  Val budget counts: [0, 0, 68, 335]
+Epoch [3/20] Train Loss: 1.3765 | Train Acc: 0.2736 | Val Loss: 1.4495 | Val Acc: 0.2804
+  Train budget counts: [0, 0, 966, 1322]
+  Val budget counts: [0, 0, 258, 145]
+Epoch [4/20] Train Loss: 1.3271 | Train Acc: 0.2688 | Val Loss: 1.4501 | Val Acc: 0.2903
+  Train budget counts: [5, 0, 1008, 1275]
+  Val budget counts: [6, 0, 228, 169]
+Epoch [5/20] Train Loss: 1.3094 | Train Acc: 0.3291 | Val Loss: 1.4663 | Val Acc: 0.2109
+  Train budget counts: [139, 181, 624, 1344]
+  Val budget counts: [92, 37, 66, 208]
+Epoch [6/20] Train Loss: 1.2660 | Train Acc: 0.4427 | Val Loss: 1.5175 | Val Acc: 0.2655
+  Train budget counts: [574, 717, 401, 596]
+  Val budget counts: [233, 31, 87, 52]
+Epoch [7/20] Train Loss: 1.2492 | Train Acc: 0.4489 | Val Loss: 1.4730 | Val Acc: 0.2506
+  Train budget counts: [667, 766, 398, 457]
+  Val budget counts: [165, 73, 83, 82]
+Epoch [8/20] Train Loss: 1.2166 | Train Acc: 0.4777 | Val Loss: 1.5388 | Val Acc: 0.2630
+  Train budget counts: [671, 819, 424, 374]
+  Val budget counts: [153, 36, 98, 116]
+Epoch [9/20] Train Loss: 1.1896 | Train Acc: 0.4948 | Val Loss: 1.5734 | Val Acc: 0.2233
+  Train budget counts: [573, 801, 504, 410]
+  Val budget counts: [189, 53, 62, 99]
+Epoch [10/20] Train Loss: 1.1583 | Train Acc: 0.5000 | Val Loss: 1.5021 | Val Acc: 0.2457
+  Train budget counts: [563, 845, 603, 277]
+  Val budget counts: [111, 113, 36, 143]
+Epoch [11/20] Train Loss: 1.1082 | Train Acc: 0.5323 | Val Loss: 1.6887 | Val Acc: 0.2233
+  Train budget counts: [583, 813, 563, 329]
+  Val budget counts: [84, 92, 139, 88]
+Epoch [12/20] Train Loss: 1.0596 | Train Acc: 0.5542 | Val Loss: 1.6900 | Val Acc: 0.2159
+  Train budget counts: [538, 838, 536, 376]
+  Val budget counts: [10, 62, 129, 202]
+Epoch [13/20] Train Loss: 1.0364 | Train Acc: 0.5642 | Val Loss: 1.7878 | Val Acc: 0.2382
+  Train budget counts: [597, 850, 544, 297]
+  Val budget counts: [231, 75, 64, 33]
+Epoch [14/20] Train Loss: 0.9885 | Train Acc: 0.5804 | Val Loss: 1.8588 | Val Acc: 0.2233
+  Train budget counts: [715, 851, 501, 221]
+  Val budget counts: [101, 96, 103, 103]
+Epoch [15/20] Train Loss: 0.9355 | Train Acc: 0.6040 | Val Loss: 2.0697 | Val Acc: 0.2184
+  Train budget counts: [570, 819, 536, 363]
+  Val budget counts: [193, 65, 79, 66]
+Epoch [16/20] Train Loss: 0.8431 | Train Acc: 0.6587 | Val Loss: 2.2231 | Val Acc: 0.1787
+  Train budget counts: [576, 809, 495, 408]
+  Val budget counts: [80, 86, 138, 99]
+Epoch [17/20] Train Loss: 0.8408 | Train Acc: 0.6547 | Val Loss: 1.9945 | Val Acc: 0.2159
+  Train budget counts: [537, 835, 484, 432]
+  Val budget counts: [104, 90, 43, 166]
+Epoch [18/20] Train Loss: 0.7707 | Train Acc: 0.6976 | Val Loss: 2.3189 | Val Acc: 0.2084
+  Train budget counts: [508, 822, 482, 476]
+  Val budget counts: [80, 65, 62, 196]
+Epoch [19/20] Train Loss: 0.6936 | Train Acc: 0.7295 | Val Loss: 2.6050 | Val Acc: 0.2382
+  Train budget counts: [439, 795, 478, 576]
+  Val budget counts: [83, 28, 47, 245]
+Epoch [20/20] Train Loss: 0.6511 | Train Acc: 0.7649 | Val Loss: 2.5589 | Val Acc: 0.2208
+  Train budget counts: [435, 784, 466, 603]
+  Val budget counts: [93, 70, 31, 209]
+Latency (sec/sample): 0.000186
+Throughput (samples/sec): 5389.26
+Best validation accuracy: 0.2903

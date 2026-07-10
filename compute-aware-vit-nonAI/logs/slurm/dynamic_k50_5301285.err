@@ -1,0 +1,9 @@
+Unsupported operator aten::add encountered 25 time(s)
+Unsupported operator aten::scaled_dot_product_attention encountered 12 time(s)
+Unsupported operator aten::gelu encountered 12 time(s)
+Unsupported operator aten::linalg_vector_norm encountered 1 time(s)
+Unsupported operator aten::topk encountered 1 time(s)
+The following submodules of the model were never called during the trace of the graph. They may be unused, or they were accessed by direct calls to .forward() or via other python methods. In the latter case they will have zeros for statistics, though their statistics will still contribute to their parent calling module.
+backbone.blocks.0.attn.attn_drop, backbone.blocks.1.attn.attn_drop, backbone.blocks.10.attn.attn_drop, backbone.blocks.11.attn.attn_drop, backbone.blocks.2.attn.attn_drop, backbone.blocks.3.attn.attn_drop, backbone.blocks.4.attn.attn_drop, backbone.blocks.5.attn.attn_drop, backbone.blocks.6.attn.attn_drop, backbone.blocks.7.attn.attn_drop, backbone.blocks.8.attn.attn_drop, backbone.blocks.9.attn.attn_drop, backbone.head_drop, controller, controller.net, controller.net.0, controller.net.1, controller.net.2
+/home/users/aarshad/dynamic_pruning_model_env/lib64/python3.11/site-packages/torch/nn/modules/conv.py:456: UserWarning: Plan failed with a cudnnException: CUDNN_BACKEND_EXECUTION_PLAN_DESCRIPTOR: cudnnFinalize Descriptor Failed cudnn_status: CUDNN_STATUS_NOT_SUPPORTED (Triggered internally at ../aten/src/ATen/native/cudnn/Conv_v8.cpp:919.)
+  return F.conv2d(input, weight, bias, self.stride,

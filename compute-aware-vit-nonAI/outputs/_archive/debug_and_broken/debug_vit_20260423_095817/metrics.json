@@ -1,0 +1,25 @@
+{
+  "model_name": "deit_tiny_patch16_224",
+  "num_classes": 100,
+  "image_size": 224,
+  "parameters": 5543716,
+  "parameters_millions": 5.5437,
+  "flops": 1079406528,
+  "flops_giga": 1.0794,
+  "best_val_acc": 0.03125,
+  "latency": 0.001154199242591858,
+  "throughput": 866.4015389183676,
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 4.673062950372696,
+      "train_acc": 0.0,
+      "val_loss": 4.652606785297394,
+      "val_acc": 0.03125,
+      "train_budget_counts": null,
+      "train_avg_keep_ratio": null,
+      "val_budget_counts": null,
+      "val_avg_keep_ratio": null
+    }
+  ]
+}

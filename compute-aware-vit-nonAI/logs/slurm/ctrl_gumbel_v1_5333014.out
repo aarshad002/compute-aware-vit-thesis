@@ -1,0 +1,47 @@
+Job started on iris-172
+Config file: configs/dynamic_ctrl_gumbel_v1.yaml
+GPU info:
+Mon Apr 20 11:06:43 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1E:00.0 Off |                    0 |
+| N/A   44C    P0             46W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/dynamic_ctrl_gumbel_v1_20260420_110650
+Files already downloaded and verified
+Files already downloaded and verified
+Total parameters: 5.54M
+FLOPs per image: 0.95 GFLOPs
+Epoch [1/5] Train Loss: 3.2933 | Train Acc: 0.2069 | Val Loss: 2.4788 | Val Acc: 0.3649
+  Train budget counts: [49810, 19, 171] | Train avg expected keep ratio: 0.2518
+  Val budget counts: [10000, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [2/5] Train Loss: 2.1944 | Train Acc: 0.4412 | Val Loss: 1.9776 | Val Acc: 0.4962
+  Train budget counts: [50000, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [3/5] Train Loss: 1.8011 | Train Acc: 0.5627 | Val Loss: 1.9280 | Val Acc: 0.5592
+  Train budget counts: [50000, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [4/5] Train Loss: 1.5763 | Train Acc: 0.6356 | Val Loss: 1.9441 | Val Acc: 0.5812
+  Train budget counts: [50000, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0] | Val avg expected keep ratio: 0.2500
+Epoch [5/5] Train Loss: 1.3722 | Train Acc: 0.6922 | Val Loss: 1.9344 | Val Acc: 0.6116
+  Train budget counts: [50000, 0, 0] | Train avg expected keep ratio: 0.2500
+  Val budget counts: [10000, 0, 0] | Val avg expected keep ratio: 0.2500
+Latency (sec/sample): 0.005091
+Throughput (samples/sec): 196.42
+Best validation accuracy: 0.6116

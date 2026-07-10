@@ -1,0 +1,49 @@
+Job started on iris-176
+Config file: configs/baseline_dense.yaml
+GPU info:
+Tue Mar 10 14:37:41 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1D:00.0 Off |                    0 |
+| N/A   40C    P0             43W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/baseline_dense_vit_20260310_143747
+Downloading https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz to ./data/cifar-100-python.tar.gz
+Extracting ./data/cifar-100-python.tar.gz to ./data
+Files already downloaded and verified
+Epoch [1/20] Train Loss: 1.5776 | Train Acc: 0.6069 | Val Loss: 0.8995 | Val Acc: 0.7417
+Epoch [2/20] Train Loss: 0.6990 | Train Acc: 0.7929 | Val Loss: 0.7776 | Val Acc: 0.7699
+Epoch [3/20] Train Loss: 0.4941 | Train Acc: 0.8483 | Val Loss: 0.7913 | Val Acc: 0.7709
+Epoch [4/20] Train Loss: 0.3653 | Train Acc: 0.8847 | Val Loss: 0.7146 | Val Acc: 0.7983
+Epoch [5/20] Train Loss: 0.2805 | Train Acc: 0.9119 | Val Loss: 0.7847 | Val Acc: 0.7857
+Epoch [6/20] Train Loss: 0.2218 | Train Acc: 0.9299 | Val Loss: 0.7707 | Val Acc: 0.7931
+Epoch [7/20] Train Loss: 0.1889 | Train Acc: 0.9394 | Val Loss: 0.8047 | Val Acc: 0.7868
+Epoch [8/20] Train Loss: 0.1577 | Train Acc: 0.9484 | Val Loss: 0.7926 | Val Acc: 0.7945
+Epoch [9/20] Train Loss: 0.1381 | Train Acc: 0.9550 | Val Loss: 0.8107 | Val Acc: 0.7981
+Epoch [10/20] Train Loss: 0.1187 | Train Acc: 0.9624 | Val Loss: 0.8527 | Val Acc: 0.7936
+Epoch [11/20] Train Loss: 0.1105 | Train Acc: 0.9645 | Val Loss: 0.8832 | Val Acc: 0.7939
+Epoch [12/20] Train Loss: 0.1005 | Train Acc: 0.9676 | Val Loss: 0.9011 | Val Acc: 0.7868
+Epoch [13/20] Train Loss: 0.0958 | Train Acc: 0.9690 | Val Loss: 0.9599 | Val Acc: 0.7767
+Epoch [14/20] Train Loss: 0.0887 | Train Acc: 0.9710 | Val Loss: 0.9674 | Val Acc: 0.7788
+Epoch [15/20] Train Loss: 0.0782 | Train Acc: 0.9755 | Val Loss: 0.9488 | Val Acc: 0.7866
+Epoch [16/20] Train Loss: 0.0780 | Train Acc: 0.9747 | Val Loss: 0.9425 | Val Acc: 0.7905
+Epoch [17/20] Train Loss: 0.0695 | Train Acc: 0.9780 | Val Loss: 0.9572 | Val Acc: 0.7900
+Epoch [18/20] Train Loss: 0.0777 | Train Acc: 0.9746 | Val Loss: 0.9501 | Val Acc: 0.7874
+Epoch [19/20] Train Loss: 0.0630 | Train Acc: 0.9803 | Val Loss: 0.9741 | Val Acc: 0.7866
+Epoch [20/20] Train Loss: 0.0659 | Train Acc: 0.9799 | Val Loss: 0.9944 | Val Acc: 0.7883
+Best validation accuracy: 0.7983

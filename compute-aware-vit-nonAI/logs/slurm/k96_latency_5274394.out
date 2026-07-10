@@ -1,0 +1,52 @@
+Job started on iris-186
+Config file: configs/static_prune_k96.yaml
+GPU info:
+Mon Mar 23 13:56:08 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-16GB           On  |   00000000:1E:00.0 Off |                    0 |
+| N/A   50C    P0             63W /  300W |       1MiB /  16384MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Using device: cuda
+Outputs will be saved to: outputs/static_prune_k96_20260323_135614
+Files already downloaded and verified
+Files already downloaded and verified
+Total parameters: 5.54M
+FLOPs per image: 0.81 GFLOPs
+Epoch [1/20] Train Loss: 1.7439 | Train Acc: 0.5636 | Val Loss: 1.1059 | Val Acc: 0.6876
+Epoch [2/20] Train Loss: 0.8179 | Train Acc: 0.7585 | Val Loss: 0.8510 | Val Acc: 0.7510
+Epoch [3/20] Train Loss: 0.5952 | Train Acc: 0.8190 | Val Loss: 0.8177 | Val Acc: 0.7652
+Epoch [4/20] Train Loss: 0.4659 | Train Acc: 0.8557 | Val Loss: 0.8545 | Val Acc: 0.7593
+Epoch [5/20] Train Loss: 0.3629 | Train Acc: 0.8865 | Val Loss: 0.8045 | Val Acc: 0.7740
+Epoch [6/20] Train Loss: 0.2936 | Train Acc: 0.9066 | Val Loss: 0.8127 | Val Acc: 0.7754
+Epoch [7/20] Train Loss: 0.2517 | Train Acc: 0.9195 | Val Loss: 0.8543 | Val Acc: 0.7740
+Epoch [8/20] Train Loss: 0.2077 | Train Acc: 0.9343 | Val Loss: 0.9114 | Val Acc: 0.7699
+Epoch [9/20] Train Loss: 0.1793 | Train Acc: 0.9429 | Val Loss: 0.9058 | Val Acc: 0.7745
+Epoch [10/20] Train Loss: 0.1642 | Train Acc: 0.9462 | Val Loss: 0.8715 | Val Acc: 0.7796
+Epoch [11/20] Train Loss: 0.1395 | Train Acc: 0.9558 | Val Loss: 0.8980 | Val Acc: 0.7780
+Epoch [12/20] Train Loss: 0.1353 | Train Acc: 0.9565 | Val Loss: 0.9543 | Val Acc: 0.7707
+Epoch [13/20] Train Loss: 0.1165 | Train Acc: 0.9623 | Val Loss: 0.9562 | Val Acc: 0.7787
+Epoch [14/20] Train Loss: 0.1190 | Train Acc: 0.9619 | Val Loss: 0.9792 | Val Acc: 0.7681
+Epoch [15/20] Train Loss: 0.1053 | Train Acc: 0.9659 | Val Loss: 1.0073 | Val Acc: 0.7715
+Epoch [16/20] Train Loss: 0.1009 | Train Acc: 0.9682 | Val Loss: 0.9744 | Val Acc: 0.7802
+Epoch [17/20] Train Loss: 0.0952 | Train Acc: 0.9697 | Val Loss: 1.0353 | Val Acc: 0.7652
+Epoch [18/20] Train Loss: 0.0913 | Train Acc: 0.9712 | Val Loss: 1.0576 | Val Acc: 0.7691
+Epoch [19/20] Train Loss: 0.0837 | Train Acc: 0.9728 | Val Loss: 1.0223 | Val Acc: 0.7729
+Epoch [20/20] Train Loss: 0.0881 | Train Acc: 0.9728 | Val Loss: 1.0936 | Val Acc: 0.7629
+Latency (sec/sample): 0.000298
+Throughput (samples/sec): 3354.73
+Best validation accuracy: 0.7802

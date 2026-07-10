@@ -1,0 +1,56 @@
+{
+  "model_name": "deit_tiny_patch16_224",
+  "num_classes": 100,
+  "image_size": 224,
+  "parameters": 5544103,
+  "parameters_millions": 5.5441,
+  "flops": 0,
+  "flops_giga": 0.0,
+  "best_val_acc": 0.4804,
+  "latency": 0.005060048651695252,
+  "throughput": 197.6265583266622,
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 3.5199593592145106,
+      "train_acc": 0.15532,
+      "val_loss": 2.941490297886543,
+      "val_acc": 0.2594
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.706853587233764,
+      "train_acc": 0.30648,
+      "val_loss": 2.507562540860195,
+      "val_acc": 0.3545
+    },
+    {
+      "epoch": 3,
+      "train_loss": 2.2755734176437743,
+      "train_acc": 0.39864,
+      "val_loss": 2.1893597948408265,
+      "val_acc": 0.4252
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.9606224941447936,
+      "train_acc": 0.46856,
+      "val_loss": 2.0341147364343777,
+      "val_acc": 0.456
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.7160045802215533,
+      "train_acc": 0.52546,
+      "val_loss": 1.9335230952323939,
+      "val_acc": 0.4804
+    }
+  ],
+  "pruning": {
+    "enabled": true,
+    "prune_layer": 6,
+    "patch_tokens_before_prune": 196,
+    "patch_tokens_kept": 98,
+    "total_tokens_after_prune": 99
+  }
+}
