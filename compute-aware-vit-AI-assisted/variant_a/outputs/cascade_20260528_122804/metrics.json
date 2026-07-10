@@ -1,0 +1,96 @@
+{
+  "model_name": "deit_tiny_patch16_224",
+  "num_classes": 100,
+  "prune_layer": 6,
+  "stage_flops_giga": {
+    "25": 0.6874,
+    "50": 0.8181,
+    "75": 0.9487,
+    "dense": 1.0794
+  },
+  "cumulative_flops_giga": {
+    "25": 0.6874,
+    "50": 1.5055,
+    "75": 2.4542,
+    "dense": 3.5336
+  },
+  "threshold_results": [
+    {
+      "threshold": 0.3,
+      "val_acc": 0.7555,
+      "avg_flops_giga": 0.7073,
+      "budget_distribution": {
+        "25": 0.9793,
+        "50": 0.0183,
+        "75": 0.0018,
+        "dense": 0.0006
+      }
+    },
+    {
+      "threshold": 0.4,
+      "val_acc": 0.7635,
+      "avg_flops_giga": 0.7421,
+      "budget_distribution": {
+        "25": 0.9472,
+        "50": 0.0439,
+        "75": 0.0061,
+        "dense": 0.0028
+      }
+    },
+    {
+      "threshold": 0.5,
+      "val_acc": 0.7765,
+      "avg_flops_giga": 0.8123,
+      "budget_distribution": {
+        "25": 0.8912,
+        "50": 0.0834,
+        "75": 0.0145,
+        "dense": 0.0109
+      }
+    },
+    {
+      "threshold": 0.6,
+      "val_acc": 0.7921,
+      "avg_flops_giga": 0.9074,
+      "budget_distribution": {
+        "25": 0.8268,
+        "50": 0.1205,
+        "75": 0.0265,
+        "dense": 0.0262
+      }
+    },
+    {
+      "threshold": 0.7,
+      "val_acc": 0.8021,
+      "avg_flops_giga": 1.027,
+      "budget_distribution": {
+        "25": 0.7613,
+        "50": 0.1481,
+        "75": 0.0365,
+        "dense": 0.0541
+      }
+    },
+    {
+      "threshold": 0.8,
+      "val_acc": 0.8142,
+      "avg_flops_giga": 1.183,
+      "budget_distribution": {
+        "25": 0.6867,
+        "50": 0.1703,
+        "75": 0.047,
+        "dense": 0.096
+      }
+    },
+    {
+      "threshold": 0.9,
+      "val_acc": 0.8212,
+      "avg_flops_giga": 1.4271,
+      "budget_distribution": {
+        "25": 0.5896,
+        "50": 0.1824,
+        "75": 0.0542,
+        "dense": 0.1738
+      }
+    }
+  ]
+}

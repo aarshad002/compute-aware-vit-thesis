@@ -1,0 +1,43 @@
+/home/arooba/miniconda3/envs/ai_assisted_env/lib/python3.10/site-packages/torch/cuda/__init__.py:716: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Using device: cuda
+Saving outputs to: outputs/controller_20260527_123651
+Files already downloaded and verified
+Files already downloaded and verified
+Parameters: 5,563,400  train_keep_ratio=0.5
+Epoch 01/20  train_loss=3.2450  train_acc=0.5388  val_loss=1.1213  val_acc=0.6874
+  -> New best val_acc: 0.6874
+Epoch 02/20  train_loss=1.7264  train_acc=0.7299  val_loss=0.9114  val_acc=0.7359
+  -> New best val_acc: 0.7359
+Epoch 03/20  train_loss=1.3525  train_acc=0.7855  val_loss=0.8512  val_acc=0.7473
+  -> New best val_acc: 0.7473
+Epoch 04/20  train_loss=1.1248  train_acc=0.8221  val_loss=0.7962  val_acc=0.7659
+  -> New best val_acc: 0.7659
+Epoch 05/20  train_loss=0.9691  train_acc=0.8479  val_loss=0.7983  val_acc=0.7699
+  -> New best val_acc: 0.7699
+Epoch 06/20  train_loss=0.8303  train_acc=0.8730  val_loss=0.7832  val_acc=0.7758
+  -> New best val_acc: 0.7758
+Epoch 07/20  train_loss=0.7398  train_acc=0.8894  val_loss=0.7983  val_acc=0.7738
+Epoch 08/20  train_loss=0.6591  train_acc=0.9041  val_loss=0.8332  val_acc=0.7735
+Epoch 09/20  train_loss=0.5845  train_acc=0.9163  val_loss=0.8780  val_acc=0.7682
+Epoch 10/20  train_loss=0.5335  train_acc=0.9246  val_loss=0.8501  val_acc=0.7737
+Epoch 11/20  train_loss=0.4701  train_acc=0.9372  val_loss=0.8418  val_acc=0.7837
+  -> New best val_acc: 0.7837
+Epoch 12/20  train_loss=0.4390  train_acc=0.9401  val_loss=0.8685  val_acc=0.7750
+Epoch 13/20  train_loss=0.3948  train_acc=0.9479  val_loss=0.9097  val_acc=0.7763
+Epoch 14/20  train_loss=0.3586  train_acc=0.9526  val_loss=0.8980  val_acc=0.7804
+Epoch 15/20  train_loss=0.3438  train_acc=0.9540  val_loss=0.9124  val_acc=0.7775
+Epoch 16/20  train_loss=0.3082  train_acc=0.9594  val_loss=0.9367  val_acc=0.7748
+Epoch 17/20  train_loss=0.2959  train_acc=0.9606  val_loss=0.9329  val_acc=0.7775
+Epoch 18/20  train_loss=0.2775  train_acc=0.9626  val_loss=0.9733  val_acc=0.7746
+Epoch 19/20  train_loss=0.2601  train_acc=0.9643  val_loss=1.0284  val_acc=0.7652
+Epoch 20/20  train_loss=0.2423  train_acc=0.9675  val_loss=0.9791  val_acc=0.7721
+
+Evaluating threshold configurations...
+  high=0.9  low=0.7  acc=0.7828  avg_flops=0.810 GFLOPs  dist={'25': 0.4237, '50': 0.2154, '75': 0.3609}
+  high=0.8  low=0.6  acc=0.7793  avg_flops=0.783 GFLOPs  dist={'25': 0.5426, '50': 0.181, '75': 0.2764}
+  high=0.7  low=0.5  acc=0.7751  avg_flops=0.759 GFLOPs  dist={'25': 0.6391, '50': 0.1768, '75': 0.1841}
+  high=0.6  low=0.4  acc=0.7696  avg_flops=0.737 GFLOPs  dist={'25': 0.7236, '50': 0.1756, '75': 0.1008}
+  high=0.5  low=0.3  acc=0.7643  avg_flops=0.717 GFLOPs  dist={'25': 0.8159, '50': 0.1442, '75': 0.0399}
+
+Done. Best val_acc (fixed budget)=0.7837  metrics -> outputs/controller_20260527_123651/metrics.json

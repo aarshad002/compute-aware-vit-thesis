@@ -1,0 +1,39 @@
+model:
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+  # Optional: path to a baseline or fixed-budget checkpoint for warm init
+  checkpoint: null
+
+controller:
+  prune_layer: 6
+  # Token budget used during training (controller is auxiliary)
+  train_keep_ratio: 0.50
+  # Weight for auxiliary controller head loss: total_loss = main + w * ctrl
+  aux_loss_weight: 0.5
+
+  # Threshold pairs evaluated after training.
+  # Each entry: high_thresh (→ 25% budget) and low_thresh (→ 50% budget).
+  # Images below low_thresh always get the 75% budget.
+  eval_thresholds:
+    - {high: 0.9, low: 0.7}
+    - {high: 0.8, low: 0.6}
+    - {high: 0.7, low: 0.5}
+    - {high: 0.6, low: 0.4}
+    - {high: 0.5, low: 0.3}
+
+dataset:
+  name: cifar100
+  image_size: 224
+  data_dir: /home/arooba/compute-aware-vit-thesis/data/
+
+training:
+  epochs: 20
+  batch_size: 32
+  optimizer: adam
+  lr: 0.0001
+  weight_decay: 0.0001
+  seed: 42
+
+output:
+  dir: ./outputs

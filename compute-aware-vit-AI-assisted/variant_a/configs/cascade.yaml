@@ -1,0 +1,30 @@
+cascade:
+  # Confidence threshold grid — the same threshold is applied at every
+  # escalation point (25% → 50% → 75% → dense).
+  thresholds: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+  # Transformer block index after which pruning is applied (must match the
+  # value used when training the fixed-budget models in Step 3).
+  prune_layer: 6
+
+  # Paths to best_model.pt for each stage.
+  # Set a value to null to fall back to pretrained ImageNet weights.
+  checkpoints:
+    budget_25: ./outputs/fixed_budget_25/best_model.pt
+    budget_50: ./outputs/fixed_budget_50/best_model.pt
+    budget_75: ./outputs/fixed_budget_75/best_model.pt
+    # Dense baseline from Step 1 (timestamped dir — update after training).
+    dense: ./outputs/baseline_20260527_105046/best_model.pt
+
+model:
+  name: deit_tiny_patch16_224
+  num_classes: 100
+  pretrained: true
+
+dataset:
+  name: cifar100
+  image_size: 224
+  data_dir: /home/arooba/compute-aware-vit-thesis/data/
+
+output:
+  dir: ./outputs

@@ -1,0 +1,20 @@
+model_type: ats
+num_classes: 100
+data_dir: /home/arooba/compute-aware-vit-thesis/data/
+output_dir: checkpoints/ats_dense
+results_dir: outputs/ats_dense
+dense_ckpt: checkpoints/dense_clean_split/best_model.pt
+batch_size: 32
+seed: 42
+split_seed: 42
+val_size: 5000
+# K_max controls the upper bound on tokens kept per ATS stage; realised K'
+# is usually lower due to deduplication. Sweeping the four points below
+# gives a curve directly comparable to static_25 / static_50 / static_75 / dense.
+k_max_sweep: [49, 98, 147, 196]
+ats_stages: [2, 3, 4, 5, 6, 7, 8, 9, 10]
+use_value_norm: true
+# FLOPs methodology: sample-averaged fvcore over N val images (input-dependent
+# graph), anchored by a crosscheck against static_25 (input-independent).
+flops_n_samples: 1000
+flops_methodology_tolerance_pct: 0.5

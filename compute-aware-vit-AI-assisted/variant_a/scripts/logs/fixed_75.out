@@ -1,0 +1,35 @@
+/home/arooba/miniconda3/envs/ai_assisted_env/lib/python3.10/site-packages/torch/cuda/__init__.py:716: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Using device: cuda
+Saving outputs to: outputs/fixed_budget_75
+Files already downloaded and verified
+Files already downloaded and verified
+keep_ratio=0.75  prune_layer=6  tokens 147/196  params=5,543,716  FLOPs=0.949 GFLOPs
+Epoch 01/20  train_loss=1.6728  train_acc=0.5802  val_loss=0.9651  val_acc=0.7278
+  -> New best val_acc: 0.7278
+Epoch 02/20  train_loss=0.7967  train_acc=0.7651  val_loss=0.8105  val_acc=0.7617
+  -> New best val_acc: 0.7617
+Epoch 03/20  train_loss=0.6069  train_acc=0.8163  val_loss=0.7728  val_acc=0.7753
+  -> New best val_acc: 0.7753
+Epoch 04/20  train_loss=0.4858  train_acc=0.8510  val_loss=0.7630  val_acc=0.7807
+  -> New best val_acc: 0.7807
+Epoch 05/20  train_loss=0.4042  train_acc=0.8744  val_loss=0.7492  val_acc=0.7858
+  -> New best val_acc: 0.7858
+Epoch 06/20  train_loss=0.3364  train_acc=0.8937  val_loss=0.7542  val_acc=0.7871
+  -> New best val_acc: 0.7871
+Epoch 07/20  train_loss=0.2918  train_acc=0.9066  val_loss=0.7372  val_acc=0.7962
+  -> New best val_acc: 0.7962
+Epoch 08/20  train_loss=0.2483  train_acc=0.9199  val_loss=0.7719  val_acc=0.7909
+Epoch 09/20  train_loss=0.2170  train_acc=0.9297  val_loss=0.7845  val_acc=0.7915
+Epoch 10/20  train_loss=0.1941  train_acc=0.9377  val_loss=0.7936  val_acc=0.7925
+Epoch 11/20  train_loss=0.1723  train_acc=0.9447  val_loss=0.8381  val_acc=0.7864
+Epoch 12/20  train_loss=0.1617  train_acc=0.9481  val_loss=0.8787  val_acc=0.7786
+Epoch 13/20  train_loss=0.1460  train_acc=0.9533  val_loss=0.8498  val_acc=0.7890
+Epoch 14/20  train_loss=0.1421  train_acc=0.9531  val_loss=0.8693  val_acc=0.7900
+Epoch 15/20  train_loss=0.1236  train_acc=0.9599  val_loss=0.8704  val_acc=0.7875
+Epoch 16/20  train_loss=0.1247  train_acc=0.9594  val_loss=0.8864  val_acc=0.7894
+Epoch 17/20  train_loss=0.1208  train_acc=0.9619  val_loss=0.9152  val_acc=0.7789
+Epoch 18/20  train_loss=0.1097  train_acc=0.9644  val_loss=0.9229  val_acc=0.7821
+Epoch 19/20  train_loss=0.1064  train_acc=0.9663  val_loss=0.8867  val_acc=0.7926
+Epoch 20/20  train_loss=0.1047  train_acc=0.9666  val_loss=0.9166  val_acc=0.7856
+Done. Best val_acc=0.7962  metrics -> outputs/fixed_budget_75/metrics.json

@@ -1,0 +1,38 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+/home/arooba/miniconda3/envs/ai_assisted_env/lib/python3.10/site-packages/torch/cuda/__init__.py:716: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Using device: cuda
+Saving outputs to: outputs/pruning_75_20260527_114011
+Files already downloaded and verified
+Files already downloaded and verified
+keep_ratio=0.75  prune_layer=6  tokens 147/196  params=5,543,716  FLOPs=0.949 GFLOPs
+Epoch 01/20  train_loss=1.6766  train_acc=0.5811  val_loss=0.9796  val_acc=0.7181
+  -> New best val_acc: 0.7181
+Epoch 02/20  train_loss=0.7957  train_acc=0.7671  val_loss=0.8187  val_acc=0.7609
+  -> New best val_acc: 0.7609
+Epoch 03/20  train_loss=0.6054  train_acc=0.8172  val_loss=0.7529  val_acc=0.7815
+  -> New best val_acc: 0.7815
+Epoch 04/20  train_loss=0.4881  train_acc=0.8494  val_loss=0.7382  val_acc=0.7825
+  -> New best val_acc: 0.7825
+Epoch 05/20  train_loss=0.4057  train_acc=0.8728  val_loss=0.7227  val_acc=0.7917
+  -> New best val_acc: 0.7917
+Epoch 06/20  train_loss=0.3388  train_acc=0.8927  val_loss=0.7427  val_acc=0.7924
+  -> New best val_acc: 0.7924
+Epoch 07/20  train_loss=0.2918  train_acc=0.9058  val_loss=0.7427  val_acc=0.7935
+  -> New best val_acc: 0.7935
+Epoch 08/20  train_loss=0.2447  train_acc=0.9215  val_loss=0.7868  val_acc=0.7857
+Epoch 09/20  train_loss=0.2212  train_acc=0.9270  val_loss=0.7867  val_acc=0.7950
+  -> New best val_acc: 0.7950
+Epoch 10/20  train_loss=0.1966  train_acc=0.9369  val_loss=0.7674  val_acc=0.7989
+  -> New best val_acc: 0.7989
+Epoch 11/20  train_loss=0.1801  train_acc=0.9414  val_loss=0.8447  val_acc=0.7831
+Epoch 12/20  train_loss=0.1568  train_acc=0.9496  val_loss=0.8216  val_acc=0.7922
+Epoch 13/20  train_loss=0.1523  train_acc=0.9508  val_loss=0.8803  val_acc=0.7830
+Epoch 14/20  train_loss=0.1391  train_acc=0.9567  val_loss=0.8483  val_acc=0.7948
+Epoch 15/20  train_loss=0.1259  train_acc=0.9593  val_loss=0.8692  val_acc=0.7880
+Epoch 16/20  train_loss=0.1206  train_acc=0.9605  val_loss=0.8454  val_acc=0.7965
+Epoch 17/20  train_loss=0.1215  train_acc=0.9606  val_loss=0.9289  val_acc=0.7805
+Epoch 18/20  train_loss=0.1125  train_acc=0.9643  val_loss=0.9151  val_acc=0.7867
+Epoch 19/20  train_loss=0.1047  train_acc=0.9670  val_loss=0.9183  val_acc=0.7895
+Epoch 20/20  train_loss=0.1046  train_acc=0.9666  val_loss=0.8909  val_acc=0.7937
+Done. Best val_acc=0.7989  metrics -> outputs/pruning_75_20260527_114011/metrics.json

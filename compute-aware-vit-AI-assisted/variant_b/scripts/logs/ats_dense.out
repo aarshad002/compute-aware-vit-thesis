@@ -1,0 +1,38 @@
+nohup: ignoring input
+/home/arooba/compute-aware-vit-variant-b/src/training/ats_eval.py:130: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  static.load_state_dict(torch.load(STATIC25_CKPT, map_location='cpu'), strict=True)
+/home/arooba/compute-aware-vit-variant-b/src/models/vit_ats.py:253: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location='cpu')
+/home/arooba/compute-aware-vit-variant-b/src/models/vit_ats.py:253: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location='cpu')
+/home/arooba/compute-aware-vit-variant-b/src/models/vit_ats.py:253: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location='cpu')
+/home/arooba/compute-aware-vit-variant-b/src/models/vit_ats.py:253: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location='cpu')
+Device  : cuda
+Config  : configs/ats_dense.yaml
+Settings: {'model_type': 'ats', 'num_classes': 100, 'data_dir': '/home/arooba/compute-aware-vit-thesis/data/', 'output_dir': 'checkpoints/ats_dense', 'results_dir': 'results/ats_dense', 'dense_ckpt': 'checkpoints/dense_clean_split/best_model.pt', 'batch_size': 32, 'seed': 42, 'split_seed': 42, 'val_size': 5000, 'k_max_sweep': [49, 98, 147, 196], 'ats_stages': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'use_value_norm': True, 'flops_n_samples': 1000, 'flops_methodology_tolerance_pct': 0.5}
+Split   : {'split_seed': 42, 'train_size': 45000, 'val_size': 5000, 'test_size': 10000}
+
+Methodology crosscheck (static_25 dummy vs sample-averaged FLOPs)…
+  dummy=0.491472  sample_avg=0.491472  rel_diff=0.0000%  (<= 0.5% OK)
+
+Sweeping K_max = [49, 98, 147, 196] …
+  stripped 'model.' prefix from 152/152 keys
+  load_state_dict(strict=True) succeeded
+  K_max=  49  val_acc=0.5974  test_acc=0.5952  avg_flops=0.3736 GFLOPs
+  stripped 'model.' prefix from 152/152 keys
+  load_state_dict(strict=True) succeeded
+  K_max=  98  val_acc=0.7158  test_acc=0.7018  avg_flops=0.5064 GFLOPs
+  stripped 'model.' prefix from 152/152 keys
+  load_state_dict(strict=True) succeeded
+  K_max= 147  val_acc=0.7528  test_acc=0.7481  avg_flops=0.6258 GFLOPs
+  stripped 'model.' prefix from 152/152 keys
+  load_state_dict(strict=True) succeeded
+  K_max= 196  val_acc=0.7746  test_acc=0.7643  avg_flops=0.7278 GFLOPs
+
+Selected (max val_acc): K_max=196  val=0.7746  test=0.7643  flops=0.7278
+Metrics saved → checkpoints/ats_dense/metrics.json
+Plots written: kprime_histograms=True  pareto_overlay=True
+
+Done.
