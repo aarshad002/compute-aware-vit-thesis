@@ -162,19 +162,47 @@ available. Results are in [Findings](#findings-and-discussion) and
 [`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md).
 
 ### 5. Learned budget controller (`DynamicPrunedViT`, controller enabled)
-A lightweight 3-layer MLP attached at layer 6 predicts the token budget per image from a
-**12-dimensional feature vector**:
+A lightweight 3-layer MLP attached at layer 6 predicts the token budget per image (logits
+over the four options {0.25, 0.50, 0.75, 1.0}) from a **12-dimensional feature vector**:
 
 - **8 token-score statistics:** mean, standard deviation, max, min, top-1 score, top-2
   score, top-1/top-2 margin, and entropy of the score distribution.
 - **4 CLS-confidence features:** class-distribution entropy, top-1 class confidence,
   top-1/top-2 class margin, and the L2 norm of the CLS vector.
 
-The controller outputs logits over four budget options {0.25, 0.50, 0.75, 1.0}. Two
-training regimes were explored: **straight-through Gumbel-softmax** (end-to-end, with a
-confidence-weighted budget penalty and optional distillation from a dense teacher) and
-**supervised** training on oracle budget labels (each sample labelled with the smallest
-budget that classifies it correctly), including class-weighted and focal-loss variants.
+Ten training runs were carried out across two paradigms. Every technique is listed below;
+each one is reported with its result in [Findings](#findings-and-discussion) and in full in
+[`docs/10`](compute-aware-vit-nonAI/docs/10_learned_budget_controller.md).
+
+**Paradigm A: Gumbel-softmax (end-to-end, differentiable routing).** Straight-through
+Gumbel-softmax makes the discrete budget choice differentiable so the whole model trains by
+back-propagation. The loss is cross-entropy plus a budget penalty,
+`mean(expected_keep_ratio × (1 − confidence))`, which is meant to charge the controller for
+spending tokens on images it is already confident about. Three variants were tried:
+- **`gumbel_v1`** — the base setup (batch size 1, backbone trainable).
+- **`gumbel_v2`** — loads the fixed-50% checkpoint and *freezes the backbone*, training only
+  the controller with a stronger penalty weight and higher learning rate, to isolate the
+  routing decision from backbone learning.
+- **`e2e` (+ distillation)** — adds a dense **knowledge-distillation teacher** so the pruned
+  model is supervised by the full model's soft predictions, and trains on a held-out split
+  of the validation data.
+
+**Paradigm B: supervised training on oracle labels.** Every training image is first labelled
+with the *smallest* budget whose fixed-budget model classifies it correctly (an "oracle"
+target), and the controller is trained to predict that label directly. Six variants
+addressed the fact that these labels are heavily skewed toward the 25% budget:
+- **`supervised_v1` / `supervised_v3`** — **class-weighted** cross-entropy, up-weighting the
+  rare larger-budget classes to counter the imbalance.
+- **`ce_v1`** — plain (unweighted) cross-entropy.
+- **`conf_v1`** — labels derived from prediction **confidence** rather than hard oracle
+  correctness.
+- **`focal_v1`** — **focal loss** (γ = 2), which down-weights easy, already-correct examples
+  so training focuses on the hard, rare-budget ones.
+- **`split_v1`** — a separate controller-train / controller-val label split to check for
+  over-fitting to the label set.
+- **balanced-label run** — training on a class-**balanced** subset (≈25% of images per
+  budget) as a diagnostic: with the majority-class shortcut removed, this isolates whether
+  the layer-6 features carry any genuine difficulty signal at all.
 
 ### 6. Rule-based controller (`DynamicPrunedViT` with `rule_based=True`)
 A zero-parameter alternative. At layer 10, the CLS token is passed through the classifier
