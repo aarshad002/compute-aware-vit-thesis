@@ -95,27 +95,44 @@ block 3, and three budget levels (49 / 98 / 196 tokens). It wrote a `DESIGN.md` 
 |---|---|---|---|
 | Dense | 196 | 1.079 | 80.96% |
 | Static 49 (25%) / 98 (50%) | 49 / 98 | 0.521 / 0.717 | 75.09% / 78.69% |
-| Adaptive **V1** (collapsed to min) | 49 | 0.521 | 75.71% |
-| Adaptive **V2** (collapsed to max) | 196 | 1.109 | 80.34% |
-| Adaptive **V3** (working) | ~94 avg | ~0.515 | **78.88%** |
-| Adaptive **V4** (ablation, prune layer 6) | 49 | — | 78.06% (collapsed) |
+| Adaptive V1 (collapsed to min budget) | 49 | 0.521 | 75.71% |
+| Adaptive V2 (collapsed to max budget) | 196 | 1.109 | 80.34% |
+| Adaptive V3 (routing works) | ~93.6 avg | ~0.70 (see below) | 78.88% |
+| Adaptive V4 (ablation, prune layer 6) | 49 | — | 78.06% (collapsed) |
 
-**Variant C is the notable scientific result of RQ2:** its learned controller ultimately
-**worked**, achieving genuine per-image routing (9% of images at 25% tokens, 91% at 50%,
-mean 93.6 tokens) for ~52% compute reduction at 78.88% accuracy — the adaptive-controller
-goal that Phase 1 (RQ1) never reached. It got there through **three autonomous debugging
-rounds with zero human corrections**:
-- **V1** collapsed to the minimum budget. The AI diagnosed the true cause — the hard
-  `argmax`/`max` in the training forward made the classification loss non-differentiable
-  with respect to the budget logits (`∂CE/∂budget = 0`), so the only gradient was the
-  cost term, which always pushes toward the cheapest budget (λ was *not* the cause).
-- **V2** (soft budget blending — compute logits at all budgets and blend by Gumbel
-  probabilities) restored the gradient but then collapsed to the *maximum* budget, because
-  the pretrained backbone's CE loss strongly favours 196 tokens early on.
-- **V3** (auxiliary CE at all budgets + entropy regularisation + stronger cost weight
+**What V3 actually achieved (and what it did not).** V3 is the only end-to-end *learned*
+budget controller anywhere in this thesis — RQ1 or RQ2 — that did **not** collapse: it
+produced genuine per-image routing (9.0% of images to 49 tokens, 91.0% to 98 tokens, mean
+93.6 tokens). That is a real result about the *trainability* of the controller, which the
+manual RQ1 implementation never reached.
+
+It is, however, **not an efficiency win over the baselines**, and two points must be stated
+honestly:
+- **FLOPs.** V3's `metrics.json` stores no measured FLOPs; the "~52% reduction / 0.515 G"
+  in the raw log is a *linear* estimate (token-ratio × dense) that ignores that pruning
+  after block 3 keeps blocks 0–3 at full token count. Computed from the **measured**
+  per-budget costs and V3's actual routing, the honest average is **~0.70 G (~35% below
+  dense, not 52%)**.
+- **Comparison.** At ~0.70 G / 78.88%, V3 **ties its own static-50 model** (78.69% at
+  0.717 G — a +0.19 pp difference within run-to-run noise) and is **2.08 pp below the dense
+  model** (80.96%). It does not beat the static frontier. It is also selected on the same
+  split it reports (Variant C uses the CIFAR-100 test set as its validation set, with no
+  held-out test), so even the marginal edge is not on independent data.
+
+The value of V3 is therefore methodological, not a new state of the art: it shows a learned
+token-budget controller *can* be trained to route without collapsing, via three autonomous
+debugging rounds (zero human corrections):
+- **V1** collapsed to the minimum budget. The AI diagnosed the cause: the hard `argmax`/`max`
+  in the training forward made the classification loss non-differentiable with respect to
+  the budget logits (`∂CE/∂budget = 0`), so the only gradient was the cost term, which
+  always pushes toward the cheapest budget (the cost weight λ was not the cause).
+- **V2** (soft budget blending: compute logits at all budgets and blend by Gumbel
+  probabilities) restored the gradient but collapsed to the *maximum* budget, because the
+  pretrained backbone's CE loss strongly favours 196 tokens early in training.
+- **V3** (auxiliary CE at all budgets + entropy regularisation + cost weight raised
   0.1→0.5) balanced the two pressures and produced stable routing.
-- **V4** ablation showed pruning at layer 6 re-collapses — layer 3's weaker features are
-  what *force* genuine routing.
+- **V4** ablation showed that pruning at layer 6 re-collapses; layer 3's weaker features are
+  what create real pressure to route.
 
 ## Variant B — Extension Study (Session 2)
 

@@ -16,14 +16,14 @@
 Vision Transformers (ViTs) apply the same amount of computation to every input image,
 processing all patch tokens through all transformer layers irrespective of how difficult
 the image is to classify. This thesis studies whether that computation can be allocated
-**adaptively** — pruning uninformative patch tokens at inference time — and quantifies the
+**adaptively** , pruning uninformative patch tokens at inference time  and quantifies the
 resulting accuracy–efficiency trade-off against static pruning baselines. Six inference
 strategies are implemented and compared on **CIFAR-100** (fine-tuned DeiT-Tiny) and
 **ImageNet-1K** (zero-shot DeiT-Small): a dense baseline, static token pruning,
 fixed-budget dynamic pruning, confidence-gated cascade inference, a learned budget
 controller, and a rule-based controller. A second, methodological study measures how
 **AI-assisted software development tools** affect research productivity and code quality
-by re-implementing the pipeline three times under different instruction regimes.
+by reimplementing the pipeline three times under different instruction regimes.
 
 The central findings are that (i) a confidence-gated cascade *exceeds* the dense model's
 accuracy on CIFAR-100 (+2.09 pp) while lowering average compute; (ii) a **zero-training
@@ -64,8 +64,8 @@ street scene incur identical cost. A large fraction of this computation is spent
 background or redundant patches that do not affect the prediction.
 
 This thesis exploits that redundancy. After an intermediate transformer layer, patch
-tokens are scored by their **L2 norm** — an established, training-free saliency proxy in
-which high-norm tokens concentrate on informative regions — and only the most salient are
+tokens are scored by their **L2 norm** , an established, training-free saliency proxy in
+which high-norm tokens concentrate on informative regions  and only the most salient are
 kept for the remaining layers. The CLS token is always preserved. The core research
 direction is whether the *number* of tokens kept can be chosen **per image** from
 confidence signals, spending more compute only where it is needed.
@@ -78,13 +78,13 @@ The thesis comprises two research questions. **Each is a self-contained project 
 own top-level folder with its own detailed README**; this document summarises both and is
 sufficient for an overview of the entire thesis.
 
-### RQ1 — Adaptive token pruning for efficient ViTs
+### RQ1 : Adaptive token pruning for efficient ViTs
 Folder: [`compute-aware-vit-nonAI/`](compute-aware-vit-nonAI/)
 
 > *Can confidence-based adaptive token budget allocation improve the accuracy–efficiency
 > trade-off of Vision Transformers compared to static token pruning baselines?*
 
-### RQ2 — Impact of AI-assisted development on the research workflow
+### RQ2 : Impact of AI-assisted development on the research workflow
 Folder: [`compute-aware-vit-AI-assisted/`](compute-aware-vit-AI-assisted/)
 
 > *What is the impact of AI-assisted software development tools on research productivity
@@ -104,7 +104,7 @@ Folder: [`compute-aware-vit-AI-assisted/`](compute-aware-vit-AI-assisted/)
 - **Prune layer.** Pruning at layer 6 (of 12) is used throughout the main experiments; a
   layer-3 variant is examined separately. Because layers before the prune point always run
   at full token count, each budget model still costs 56–76% of the dense model rather than
-  its nominal token percentage — a fact central to the FLOPs analysis.
+  its nominal token percentage , a fact central to the FLOPs analysis.
 - **Compute metric.** FLOPs are measured with `fvcore`. Where a strategy's cost depends on
   a per-image routing decision (cascade, controllers), FLOPs are reported using a
   per-budget lookup map; the sequential ("cumulative") cost of cascades is analysed
@@ -156,7 +156,7 @@ validation set.
 **Sub-dense cascade variant.** A follow-up removes the dense fallback entirely and cascades
 a **10% → 25% → 50%** ladder (a 10% model was trained specifically for this), with the 50%
 stage forced-accept. This reframes the question to *the best accuracy achievable under a
-strict sub-dense compute budget*, and — together with the cumulative-FLOPs analysis — tests
+strict sub-dense compute budget*, and  together with the cumulative-FLOPs analysis, tests
 whether confidence-gated early exit can beat single fixed budgets when no expensive stage is
 available. Results are in [Findings](#findings-and-discussion) and
 [`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md).
@@ -188,9 +188,9 @@ otherwise              → keep 75% tokens
 
 The `(high, low)` threshold pair is swept on the validation set.
 
-### RQ2 — AI-assisted implementation study
+### RQ2 : AI-assisted implementation study
 The RQ1 pipeline is re-implemented three times from scratch with an AI coding assistant,
-each variant given the same goal under a different instruction style — **variant A**
+each variant given the same goal under a different instruction style, **variant A**
 prescriptive step-by-step, **variant B** architecture-first, **variant C** problem-level.
 Every session is logged (prompt, wall-clock time, human interventions, corrections), and
 the generated code is preserved unmodified as study evidence.
@@ -219,7 +219,7 @@ All figures below are reproduced from
 [`docs/12_results_master_tables.md`](compute-aware-vit-nonAI/docs/12_results_master_tables.md),
 which is generated from the recorded `metrics.json` and result files.
 
-### CIFAR-100 — fine-tuned DeiT-Tiny, prune layer 6
+### CIFAR-100 : fine-tuned DeiT-Tiny, prune layer 6
 
 | Strategy | Setting | Top-1 acc | FLOPs (G) | Throughput (/s) |
 |---|---|---|---|---|
@@ -234,7 +234,7 @@ which is generated from the recorded `metrics.json` and result files.
 | Cascade | best efficiency (0.3, 0.3, 0.3) | 76.29% | 0.6889* | — |
 | Learned controller | best (e2e_v2) | 77.74% | — | — |
 
-### ImageNet-1K validation — zero-shot DeiT-Small, prune layer 6
+### ImageNet-1K validation : zero-shot DeiT-Small, prune layer 6
 
 | Strategy | Setting | Top-1 acc | FLOPs (G) | Throughput (/s) |
 |---|---|---|---|---|
@@ -260,12 +260,12 @@ sequential cost of cascades is analysed under cumulative accounting in
 | ImageNet rule (high 0.8 / low 0.5) | 2.2% | 24.5% | 73.3% | — |
 
 CIFAR-100 images are mostly "easy" (two-thirds exit at the 25% budget), whereas ImageNet
-images predominantly require the heavier budgets — a quantitative confirmation that
+images predominantly require the heavier budgets, a quantitative confirmation that
 ImageNet is substantially harder to compress.
 
-### Cumulative FLOPs — the true cost of cascading
+### Cumulative FLOPs : the true cost of cascading
 
-The cascade FLOPs above are **exit-only** — they charge each image just for the budget it
+The cascade FLOPs above are **exit-only**, they charge each image just for the budget it
 exits at. But a cascade physically **runs every earlier stage** first, so the honest cost
 is *cumulative*. Because pruning at layer 6 makes each budget model cost 56–76% of dense,
 the cumulative cost rises steeply once images escalate, and **if enough images are hard it
@@ -274,14 +274,14 @@ exceeds the dense model** ([`docs/17`](compute-aware-vit-nonAI/docs/17_cascade_v
 
 | Cascade | Best-accuracy point: exit-only → cumulative | Cheapest point matching dense accuracy | Beats a single static model? |
 |---|---|---|---|
-| CIFAR-100 (25→50→75→dense) | 81.82% at 0.763 G (71%) → **1.208 G (112% of dense)** | 79.73% at **0.882 G (82% of dense)** | **Yes** — beats 50%/75%/dense (up to 18% saved); the ensemble lift reaches 81.37% at exactly dense compute |
-| CIFAR-100 sub-dense (10→25→50) | 79.57% at 0.680 G (63%) → **1.155 G (107% of dense)** | 79.11% at ~1.066 G (99%) | **No** — the single 75% model (79.16% at 88%) is cheaper at equal accuracy |
-| ImageNet L6 (25→50→75→dense) | 79.71% at 3.969 G (93%) → **11.611 G (273% of dense)** | none below dense compute | **No** — cumulative cost rules it out at every level |
-| ImageNet L3 (25→50→75→dense) | 79.71% at 3.824 G (90%) → **10.046 G (236% of dense)** | 78.27% at 4.154 G (98%) | **No** — a single fixed-75%@L3 (79.12% at 82%) dominates |
+| CIFAR-100 (25→50→75→dense) | 81.82% at 0.763 G (71%) → **1.208 G (112% of dense)** | 79.73% at **0.882 G (82% of dense)** | **Yes** : beats 50%/75%/dense (up to 18% saved); the ensemble lift reaches 81.37% at exactly dense compute |
+| CIFAR-100 sub-dense (10→25→50) | 79.57% at 0.680 G (63%) → **1.155 G (107% of dense)** | 79.11% at ~1.066 G (99%) | **No** : the single 75% model (79.16% at 88%) is cheaper at equal accuracy |
+| ImageNet L6 (25→50→75→dense) | 79.71% at 3.969 G (93%) → **11.611 G (273% of dense)** | none below dense compute | **No** : cumulative cost rules it out at every level |
+| ImageNet L3 (25→50→75→dense) | 79.71% at 3.824 G (90%) → **10.046 G (236% of dense)** | 78.27% at 4.154 G (98%) | **No** : a single fixed-75%@L3 (79.12% at 82%) dominates |
 
 The **sub-dense follow-up** (a supervisor-requested experiment: a new 10% model cascaded
 10→25→50 with no dense fallback, asking for the best accuracy under a strict sub-dense
-budget) confirms the same conclusion — no cascade combination beats a single static model,
+budget) confirms the same conclusion, no cascade combination beats a single static model,
 which forms the efficient frontier across the entire useful accuracy range
 ([`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md)). Confidence is a
 reliable exit signal; the binding constraint is the per-stage cost floor, not the routing.
@@ -290,7 +290,7 @@ reliable exit signal; the binding constraint is the per-stage cost floor, not th
 
 ## Findings and Discussion
 
-1. **The cascade exceeds the dense model on CIFAR-100** — 81.82% versus 79.73%
+1. **The cascade exceeds the dense model on CIFAR-100**: 81.82% versus 79.73%
    (+2.09 pp), acting as a confidence-gated implicit ensemble. Its efficiency claim,
    however, holds only under honest *cumulative* accounting on this specific dataset: the
    best-accuracy point actually costs 112% of dense, and the cascade beats a single static
@@ -298,14 +298,20 @@ reliable exit signal; the binding constraint is the per-stage cost floor, not th
    zero-shot ImageNet the cumulative cost to match dense accuracy is **273% of dense**, and
    neither the sub-dense CIFAR cascade nor the layer-3 ImageNet cascade beats a single
    fixed-budget model.
-2. **The rule-based controller is the practical adaptive winner on ImageNet** — within
+2. **The rule-based controller is the practical adaptive winner on ImageNet**: within
    0.04 pp of dense accuracy with **no training**, forming a strong baseline the trained
    controllers failed to beat.
-3. **The learned controller failed** — across Gumbel-softmax, supervised cross-entropy,
-   class-weighted, focal-loss, and distillation variants it collapsed to a single budget.
-   The mid-network features at layer 6 do not reliably separate easy from hard images on
-   the long-tailed CIFAR-100 distribution. This is reported in full as a negative result.
-4. **Fixed budgets are hard to beat under honest accounting** — because layers before the
+3. **The learned controller failed**: all **ten** training runs collapsed to a single
+   budget — three Gumbel-softmax variants (including a frozen backbone, a stronger penalty,
+   and dense distillation) and seven supervised variants (plain, class-weighted, and focal
+   cross-entropy, plus confidence-derived and split labels). The decisive evidence is that
+   on a *class-balanced* label subset, where predicting the majority class cannot help,
+   budget-prediction accuracy is only ~29% against a 25% chance floor: the layer-6 features
+   do not separate easy from hard images. Skewed oracle labels (96.8% "25% suffices"), that
+   weak difficulty signal, and hard discrete optimisation are the three root causes, with
+   the per-run evidence in
+   [`docs/10`](compute-aware-vit-nonAI/docs/10_learned_budget_controller.md).
+4. **Fixed budgets are hard to beat under honest accounting**: because layers before the
    prune point always run at full token count, each budget model costs 56–76% of the dense
    model. Under cumulative FLOPs accounting, cascading several stages is Pareto-dominated
    by a single well-chosen fixed budget across the useful accuracy range.
@@ -318,7 +324,7 @@ Limitations and the FLOPs-accounting caveat are detailed in
 
 ---
 
-## RQ2 — AI-Assisted Development: Results and Findings
+## RQ2-AI-Assisted Development: Results and Findings
 
 The RQ1 pipeline was re-implemented three times with an AI coding assistant, each variant
 under a different instruction style; every session was timed and every human intervention
@@ -333,12 +339,12 @@ recorded. Full detail, tables, and the per-experiment write-ups are in the
 | Files | 15 (~1,500 LOC) | 33 | full pipeline + `DESIGN.md` + v1–v4 |
 | Human corrections | 1 major (wrote SLURM scripts for a non-SLURM server) | 3 (silent training-config bugs) | 0 |
 | Autonomous debugging | fixed an fvcore bug itself | none needed during build | diagnosed controller collapse across 3 rounds |
-| Distinctive outcome | non-collapsing auxiliary-classifier controller (78.28%) | cleanest code; furthest extensions | **a working learned controller** |
+| Distinctive outcome | non-collapsing auxiliary-classifier controller (78.28%) | cleanest code; furthest extensions | the only non-collapsing learned controller (ties static-50, not an efficiency win) |
 
 - **Variant A (prescriptive)** was fast and needed no code corrections during
   implementation, but produced the least exploratory design (a single-threshold cascade,
   because the prompt did not ask for per-stage thresholds). Its one major correction came
-  from an *environment assumption* — it wrote SLURM scripts for a server that does not use
+  from an *environment assumption*, it wrote SLURM scripts for a server that does not use
   SLURM. Notably, its controller used an auxiliary-classifier design and **did not
   collapse** (best 78.28% at 0.810 G).
 - **Variant B (architecture-first)** produced the cleanest, most modular code and a full
@@ -348,11 +354,16 @@ recorded. Full detail, tables, and the per-experiment write-ups are in the
   curves. It also went furthest scientifically (see extensions below).
 - **Variant C (open-ended)** independently proposed a different method (CLS-attention token
   scoring, a Gumbel-softmax controller, pruning at layer 3), wrote a `DESIGN.md` predicting
-  its own failure mode, and — crucially — **achieved a working learned budget controller**
-  (V3: 78.88% at ~52% compute reduction, genuine routing) that the manual RQ1
-  implementation never reached. It did so through three autonomous debugging rounds (V1
-  collapsed to the minimum budget from a non-differentiable `argmax`; V2 to the maximum;
-  V3 balanced with auxiliary CE + entropy regularisation) with **zero human corrections**.
+  its own failure mode, and produced the only end-to-end **learned** budget controller in
+  the whole thesis that did **not** collapse: V3 achieved genuine per-image routing (78.88%
+  accuracy) through three autonomous debugging rounds with zero human corrections (V1
+  collapsed to the minimum budget from a non-differentiable `argmax`; V2 to the maximum; V3
+  balanced it with auxiliary CE and entropy regularisation). This is a *trainability*
+  result, **not** an efficiency win: computed from the measured per-budget FLOPs, V3 costs
+  ~0.70 G (about 35% below dense, not the ~52% its raw log estimated), which ties its own
+  static-50 baseline (78.69% at 0.717 G) and stays 2.08 pp below dense, and it is selected
+  on the same split it reports. The manual RQ1 controller never reached even this
+  non-collapsing point.
 
 ### Variant B extension study
 
@@ -362,31 +373,31 @@ Some experiments implement methods established in prior literature; the contribu
 their honest, like-for-like evaluation **in this thesis's setting** (DeiT-Tiny, CIFAR-100).
 Full write-ups: [`variant_b/docs/`](compute-aware-vit-AI-assisted/variant_b/docs/).
 
-- **Multi-budget ViT — the winning method.** A single network trained to run at every token
+- **Multi-budget ViT-the winning method.** A single network trained to run at every token
   budget, so budget becomes a free runtime knob. The recipe adapts two established
-  slimmable/anytime-network techniques — **sandwich-rule sampling** and **in-place
-  distillation** — to token budgets in a DeiT-Tiny pruned at layer 3. It **beats every
+  slimmable/anytime-network techniques **sandwich-rule sampling** and **in-place
+  distillation** to token budgets in a DeiT-Tiny pruned at layer 3. It **beats every
   separately-trained specialist at every budget** (25%: 74.83% vs 72.83%; 50%: 79.14% vs
   76.86%; 75%: 80.33% vs 78.91%; 100%: 80.70% vs 79.50%), at 4× lower storage/training cost
   and with no inference latency penalty, confirmed across seeds 7/42/123.
-- **Adaptive Token Sampling (ATS) — a published baseline, newly evaluated on CIFAR-100.**
+- **Adaptive Token Sampling (ATS)-a published baseline, newly evaluated on CIFAR-100.**
   ATS (Fayyaz et al., ECCV 2022) is a training-free method that resamples tokens by
   attention importance per image; the original paper evaluated it on ImageNet, **not
   CIFAR-100**. Applied here training-free, **it works and does produce genuine per-image
   token adaptation, but it does not reach this setting's static/retrained frontier**: its
   best point is 76.43% at 0.728 G, below the retrained static-50 (76.86% at 0.687 G) and
-  well below the multi-budget model (79.14% at 0.687 G). The gap is training — reusing dense
+  well below the multi-budget model (79.14% at 0.687 G). The gap is training, reusing dense
   weights that never saw token dropping costs too much accuracy on upsampled CIFAR-100.
 - **Oracle ceiling diagnostic.** With perfect single-pass routing the model zoo could reach
   **91.02% at 0.546 G** (+11.5 pp over dense at half the compute); 81.8% of images are
   already correct at the 25% budget. The bottleneck is the routing signal, not the models.
 - **Early-signal probe (negative).** A probe on layer-1–3 features predicts "needs a bigger
-  budget" at only **AUROC ≈ 0.55** (chance 0.50) — explaining why the oracle headroom is
+  budget" at only **AUROC ≈ 0.55** (chance 0.50), explaining why the oracle headroom is
   unreachable in practice, and independently confirming RQ1's learned-controller failure:
   reliable difficulty signal appears only after a full forward pass.
 - **Further honest negatives.** A learned exit gate (a logistic gate replacing the
   confidence threshold) never beat the plain threshold rule, and shared-prefix progressive
-  widening (reusing one checkpoint across budgets) collapsed off-budget — both reported as
+  widening (reusing one checkpoint across budgets) collapsed off-budget, both reported as
   exploratory negative results.
 
 ### Cross-cutting finding
@@ -425,7 +436,7 @@ compute-aware-vit-thesis/
     └── variant_a/ variant_b/ variant_c/   ← three implementations + session logs
 ```
 
-All experiments are run **from inside a project folder**, not from the repository root —
+All experiments are run **from inside a project folder**, not from the repository root,
 paths such as `src/`, `configs/`, and `outputs/` are relative to the project folder.
 
 ---
