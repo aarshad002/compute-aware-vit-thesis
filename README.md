@@ -43,6 +43,7 @@ cascading. All results, including negative ones, are documented and reproducible
 - [Experimental Setup](#experimental-setup)
 - [Results](#results)
 - [Findings and Discussion](#findings-and-discussion)
+- [RQ2 — AI-Assisted Development: Results and Findings](#rq2--ai-assisted-development-results-and-findings)
 - [Repository Structure](#repository-structure)
 - [Getting Started](#getting-started)
 - [Reproducibility](#reproducibility)
@@ -254,13 +255,41 @@ CIFAR-100 images are mostly "easy" (two-thirds exit at the 25% budget), whereas 
 images predominantly require the heavier budgets — a quantitative confirmation that
 ImageNet is substantially harder to compress.
 
+### Cumulative FLOPs — the true cost of cascading
+
+The cascade FLOPs above are **exit-only** — they charge each image just for the budget it
+exits at. But a cascade physically **runs every earlier stage** first, so the honest cost
+is *cumulative*. Because pruning at layer 6 makes each budget model cost 56–76% of dense,
+the cumulative cost rises steeply once images escalate, and **if enough images are hard it
+exceeds the dense model** ([`docs/17`](compute-aware-vit-nonAI/docs/17_cascade_vs_static_comparison.md),
+[`docs/15`](compute-aware-vit-nonAI/docs/15_imagenet_layer3_cascade.md)):
+
+| Cascade | Best-accuracy point: exit-only → cumulative | Cheapest point matching dense accuracy | Beats a single static model? |
+|---|---|---|---|
+| CIFAR-100 (25→50→75→dense) | 81.82% at 0.763 G (71%) → **1.208 G (112% of dense)** | 79.73% at **0.882 G (82% of dense)** | **Yes** — beats 50%/75%/dense (up to 18% saved); the ensemble lift reaches 81.37% at exactly dense compute |
+| CIFAR-100 sub-dense (10→25→50) | 79.57% at 0.680 G (63%) → **1.155 G (107% of dense)** | 79.11% at ~1.066 G (99%) | **No** — the single 75% model (79.16% at 88%) is cheaper at equal accuracy |
+| ImageNet L6 (25→50→75→dense) | 79.71% at 3.969 G (93%) → **11.611 G (273% of dense)** | none below dense compute | **No** — cumulative cost rules it out at every level |
+| ImageNet L3 (25→50→75→dense) | 79.71% at 3.824 G (90%) → **10.046 G (236% of dense)** | 78.27% at 4.154 G (98%) | **No** — a single fixed-75%@L3 (79.12% at 82%) dominates |
+
+The **sub-dense follow-up** (a supervisor-requested experiment: a new 10% model cascaded
+10→25→50 with no dense fallback, asking for the best accuracy under a strict sub-dense
+budget) confirms the same conclusion — no cascade combination beats a single static model,
+which forms the efficient frontier across the entire useful accuracy range
+([`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md)). Confidence is a
+reliable exit signal; the binding constraint is the per-stage cost floor, not the routing.
+
 ---
 
 ## Findings and Discussion
 
 1. **The cascade exceeds the dense model on CIFAR-100** — 81.82% versus 79.73%
-   (+2.09 pp) at ~29% lower average FLOPs. Routing high-confidence images to cheaper
-   models acts as an implicit ensemble.
+   (+2.09 pp), acting as a confidence-gated implicit ensemble. Its efficiency claim,
+   however, holds only under honest *cumulative* accounting on this specific dataset: the
+   best-accuracy point actually costs 112% of dense, and the cascade beats a single static
+   model only at the "match dense accuracy" operating point (82% of dense compute). On
+   zero-shot ImageNet the cumulative cost to match dense accuracy is **273% of dense**, and
+   neither the sub-dense CIFAR cascade nor the layer-3 ImageNet cascade beats a single
+   fixed-budget model.
 2. **The rule-based controller is the practical adaptive winner on ImageNet** — within
    0.04 pp of dense accuracy with **no training**, forming a strong baseline the trained
    controllers failed to beat.
@@ -278,6 +307,73 @@ ImageNet is substantially harder to compress.
 
 Limitations and the FLOPs-accounting caveat are detailed in
 [`docs/13_findings_limitations.md`](compute-aware-vit-nonAI/docs/13_findings_limitations.md).
+
+---
+
+## RQ2 — AI-Assisted Development: Results and Findings
+
+The RQ1 pipeline was re-implemented three times with an AI coding assistant, each variant
+under a different instruction style; every session was timed and every human intervention
+recorded. Full detail, tables, and the per-experiment write-ups are in the
+[RQ2 README](compute-aware-vit-AI-assisted/README.md) and `variant_*/` logs.
+
+### How each variant behaved
+
+| | Variant A (prescriptive) | Variant B (architecture-first) | Variant C (open-ended) |
+|---|---|---|---|
+| Implementation time | ~17 min | ~10 min | ~15 min |
+| Files | 15 (~1,500 LOC) | 33 | full pipeline + `DESIGN.md` + v1–v4 |
+| Human corrections | 1 major (wrote SLURM scripts for a non-SLURM server) | 3 (silent training-config bugs) | 0 |
+| Autonomous debugging | fixed an fvcore bug itself | none needed during build | diagnosed controller collapse across 3 rounds |
+| Distinctive outcome | non-collapsing auxiliary-classifier controller (78.28%) | cleanest code; furthest extensions | **a working learned controller** |
+
+- **Variant A (prescriptive)** was fast and needed no code corrections during
+  implementation, but produced the least exploratory design (a single-threshold cascade,
+  because the prompt did not ask for per-stage thresholds). Its one major correction came
+  from an *environment assumption* — it wrote SLURM scripts for a server that does not use
+  SLURM. Notably, its controller used an auxiliary-classifier design and **did not
+  collapse** (best 78.28% at 0.810 G).
+- **Variant B (architecture-first)** produced the cleanest, most modular code and a full
+  343-combination cascade. Its three human corrections were all **silent training-config
+  bugs** (a cosine LR schedule decaying to zero → 46.73%; a missing `pretrained: true` flag
+  → 48.79%) that passed every automated check and surfaced only by inspecting training
+  curves. It also went furthest scientifically (see extensions below).
+- **Variant C (open-ended)** independently proposed a different method (CLS-attention token
+  scoring, a Gumbel-softmax controller, pruning at layer 3), wrote a `DESIGN.md` predicting
+  its own failure mode, and — crucially — **achieved a working learned budget controller**
+  (V3: 78.88% at ~52% compute reduction, genuine routing) that the manual RQ1
+  implementation never reached. It did so through three autonomous debugging rounds (V1
+  collapsed to the minimum budget from a non-differentiable `argmax`; V2 to the maximum;
+  V3 balanced with auxiliary CE + entropy regularisation) with **zero human corrections**.
+
+### Variant B extension experiments (an original contribution)
+
+A second round of work in Variant B, under a clean 45k/5k/10k train/val/test split with
+select-on-validation / test-once discipline, produced eight further experiments — including
+a genuinely new method — with results in [`variant_b/docs/`](compute-aware-vit-AI-assisted/variant_b/docs/):
+
+- **Multi-budget ViT (winning result).** A single model trained to run at all budgets
+  (sandwich training + in-place distillation, prune layer 3) **beats every specialist at
+  every budget** — 25%: 74.83% vs 72.83%, 50%: 79.14% vs 76.86%, 75%: 80.33% vs 78.91%,
+  100%: 80.70% vs 79.50% — while being 4× cheaper to store and train, with no latency
+  penalty, confirmed across three seeds.
+- **Oracle ceiling diagnostic.** Perfect single-pass routing would reach 91.02% at 0.546 G
+  (+11.5 pp over dense at half the compute); 81.8% of images are already correct at the 25%
+  budget — large theoretical headroom.
+- **Early-signal probe (negative).** Layer-1–3 features predict "needs a bigger budget" at
+  AUROC ≈ 0.55, barely above chance — explaining why that headroom is unreachable in
+  practice, and echoing RQ1's learned-controller failure.
+- **Honest negatives.** A learned exit gate, training-free Adaptive Token Sampling (ATS),
+  and shared-prefix progressive widening were all tried and reported as not improving on
+  the simpler baselines.
+
+### Cross-cutting finding
+
+With the AI assistant, syntax and integration errors were rare; the residual failures were
+**semantic and configuration** issues (a wrong LR schedule, a missing pretrained flag, an
+incorrect environment assumption) that passed all automated checks and were caught only by
+a human reading the results. Instruction style measurably shaped both productivity and the
+design produced.
 
 ---
 

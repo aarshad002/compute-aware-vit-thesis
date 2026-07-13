@@ -132,6 +132,48 @@ The accuracy improvement over dense comes from the cascade acting as an implicit
 
 On ImageNet, most images require the full model, but the cascade still avoids wasted compute on the easy fraction.
 
+#### Critical caveat: exit-only vs cumulative FLOPs
+
+The "Avg FLOPs" above count **only the budget each image exits at**. But a cascade
+physically **runs every earlier stage** before the accepted one, so the true per-image
+cost is the *cumulative* sum of all stages up to exit. Because pruning happens at layer 6,
+every budget model already costs 56–76% of dense, so **as soon as an image escalates past
+the first stage the cumulative cost climbs quickly — and if enough images are hard, it
+exceeds the dense model outright.** Under honest cumulative accounting
+([`docs/17`](docs/17_cascade_vs_static_comparison.md)):
+
+| Cascade | Best-accuracy point (exit-only → cumulative) | Cheapest point matching dense accuracy | Beats a single static model? |
+|---|---|---|---|
+| CIFAR-100 (25→50→75→dense) | 81.82% at 0.763 G (71%) → **1.208 G (112% of dense)** | 79.73% at **0.882 G (82% of dense)** | **Yes** — beats 50%/75%/dense (up to 18% saved); the ensemble lift even reaches 81.37% at exactly dense compute |
+| ImageNet L6 (25→50→75→dense) | 79.71% at 3.969 G (93%) → **11.611 G (273% of dense)** | none below dense compute | **No** — cumulative cost rules it out at every accuracy level |
+| ImageNet L3 (25→50→75→dense) | 79.71% at 3.824 G (90%) → **10.046 G (236% of dense)** | 78.27% at 4.154 G (98%) | **No** — a single fixed-75%@L3 (79.12% at 82%) dominates the whole cascade |
+
+The lesson: adaptive cascading only saves compute when a large fraction of inputs are
+genuinely easy (exit at the cheapest stage). On CIFAR-100 (~67% of images exit at 25%)
+the cascade beats static; on hard, zero-shot ImageNet most images escalate, the cumulative
+cost overtakes dense, and **a single well-chosen static budget is the efficient frontier**
+([`docs/15`](docs/15_imagenet_layer3_cascade.md)).
+
+#### Sub-dense cascade follow-up (10 → 25 → 50, CIFAR-100)
+
+A supervisor-requested follow-up removed the dense fallback entirely and asked: what is
+the best accuracy under a strict **sub-dense** compute budget? A new 10% model was trained
+and cascaded 10% → 25% → 50% (the 50% stage forced-accept). Results
+([`docs/16`](docs/16_subdense_cascade_cifar.md), 100-combination grid):
+
+| Operating point | Thresholds | Accuracy | Cumulative FLOPs (% dense) |
+|---|---|---|---|
+| Best accuracy | (0.98, 0.90) | 79.57% | 1.155 G (107%) |
+| Highest accuracy below dense compute | (0.98, 0.70) | 79.11% | ~1.066 G (99%) |
+| Most efficient | (0.30, 0.30) | 71.26% | 0.616 G (57%) |
+
+**No sub-dense cascade combination beats a single static model:** to reach ~79% it needs
+~99% of dense compute, whereas the single 75% model already gives 79.16% at 88% and the
+50% model gives 78.18% at 76%. Across the entire useful accuracy range (≥77%) the static
+models form the efficient frontier — the cascade is Pareto-dominated. Confidence itself is
+a reliable exit signal (accuracy rises monotonically with confidence at every stage); the
+binding constraint is the per-stage cost floor imposed by pruning at layer 6.
+
 ---
 
 ### 5. Learned Budget Controller (`DynamicPrunedViT`)
@@ -324,9 +366,9 @@ sbatch scripts/run_hpc.sh configs/dense/baseline_dense.yaml
 
 1. **L2-norm token scoring is effective.** Tokens with high L2 norm after mid-network layers consistently correspond to informative image patches, making this a reliable no-training pruning signal.
 
-2. **50% token budget is the sweet spot on CIFAR-100.** It retains 97.8% of dense accuracy while cutting FLOPs by 24% and raising throughput by 29%.
+2. **50% token budget is the sweet spot on CIFAR-100.** It retains 98.1% of dense accuracy (−1.55 pp) while cutting FLOPs by 24% and raising throughput by 29%.
 
-3. **Cascade inference beats a single dense model on CIFAR-100.** By routing easy images to cheap models, cascade achieves +2.1 pp accuracy over dense at 29% lower average FLOPs.
+3. **Cascade inference beats a single dense model on CIFAR-100 — but only under honest accounting on that dataset.** As a confidence-gated selective ensemble it reaches +2.1 pp over dense. Its efficiency, however, must be read cumulatively (every earlier stage physically runs): the best-accuracy point actually costs 112% of dense, and it beats a single static model only at the "match dense accuracy" point (82% of dense compute). On zero-shot ImageNet the cumulative cost to match dense accuracy is **273% of dense**, and neither the sub-dense CIFAR cascade nor the layer-3 ImageNet cascade beats a single fixed-budget model. The general rule: cascading saves compute only when most inputs are genuinely easy and exit early.
 
 4. **The learned controller failed to learn meaningful per-image routing.** Budget collapse (converging to a single budget) was a persistent problem across all training strategies — Gumbel-softmax, supervised CE, focal loss, and distillation variants. The underlying cause is that the controller's input features at layer 6 do not reliably separate easy from hard images, especially on the long-tailed CIFAR-100 distribution.
 
