@@ -3,184 +3,406 @@
 | | |
 |---|---|
 | **Author** | Arooba Arshad |
+| **Supervisor** | Decebal Constantin Mocanu |
+| **Advisor** | Boqian Wu |
 | **Degree** | Master of Science in Computer Science |
 | **Institution** | University of Luxembourg |
 | **Year** | 2026 |
 
-## Overview
+---
 
-This repository contains the complete research implementation, experiment
-configurations, documentation, and results of my Master's thesis on
-**compute-efficient Vision Transformers**. The thesis investigates whether a Vision
-Transformer can decide, per image, how much computation it actually needs — pruning
-uninformative patch tokens at inference time — and, as a second study, measures how
-AI-assisted development tools affect the research workflow itself.
+## Abstract
 
-The work covers six inference strategies (dense baseline, static token pruning,
-fixed-budget dynamic pruning, cascade inference, a learned budget controller, and a
-rule-based controller), evaluated on **CIFAR-100** (fine-tuned DeiT-Tiny) and
-**ImageNet-1K** (zero-shot DeiT-Small), plus a controlled three-variant study of
-AI-assisted implementation.
+Vision Transformers (ViTs) apply the same amount of computation to every input image,
+processing all patch tokens through all transformer layers irrespective of how difficult
+the image is to classify. This thesis studies whether that computation can be allocated
+**adaptively** — pruning uninformative patch tokens at inference time — and quantifies the
+resulting accuracy–efficiency trade-off against static pruning baselines. Six inference
+strategies are implemented and compared on **CIFAR-100** (fine-tuned DeiT-Tiny) and
+**ImageNet-1K** (zero-shot DeiT-Small): a dense baseline, static token pruning,
+fixed-budget dynamic pruning, confidence-gated cascade inference, a learned budget
+controller, and a rule-based controller. A second, methodological study measures how
+**AI-assisted software development tools** affect research productivity and code quality
+by re-implementing the pipeline three times under different instruction regimes.
+
+The central findings are that (i) a confidence-gated cascade *exceeds* the dense model's
+accuracy on CIFAR-100 (+2.09 pp) while lowering average compute; (ii) a **zero-training
+rule-based controller** matches dense ImageNet accuracy within 0.04 pp; (iii) a *learned*
+controller consistently fails through budget collapse; and (iv) under honest cumulative
+FLOPs accounting, a single well-chosen fixed budget is often more efficient than
+cascading. All results, including negative ones, are documented and reproducible.
+
+---
+
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Research Questions](#research-questions)
+- [Background](#background)
+- [Methods](#methods)
+- [Experimental Setup](#experimental-setup)
+- [Results](#results)
+- [Findings and Discussion](#findings-and-discussion)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+- [Reproducibility](#reproducibility)
+- [Documentation](#documentation)
+- [Environment](#environment)
+- [License and Citation](#license-and-citation)
+- [Acknowledgements](#acknowledgements)
+
+---
 
 ## Motivation
 
-Standard Vision Transformers spend the same amount of computation on every image: all
-196 patch tokens pass through all transformer layers, whether the image is a plain blue
-sky or a cluttered street scene. Most of that computation is wasted on easy images.
-This thesis builds and compares strategies that allocate compute adaptively — scoring
-patch tokens mid-network by their L2 norm and keeping only the informative ones, with
-the token budget either fixed in advance or chosen per image from confidence signals.
+A standard ViT tokenises an image into a fixed grid of patches (196 patches for a
+224×224 image at patch size 16) and processes all of them, plus a classification (CLS)
+token, through every transformer block. The compute cost is therefore constant per image,
+even though images differ enormously in difficulty: a plain blue sky and a cluttered
+street scene incur identical cost. A large fraction of this computation is spent on
+background or redundant patches that do not affect the prediction.
+
+This thesis exploits that redundancy. After an intermediate transformer layer, patch
+tokens are scored by their **L2 norm** — an established, training-free saliency proxy in
+which high-norm tokens concentrate on informative regions — and only the most salient are
+kept for the remaining layers. The CLS token is always preserved. The core research
+direction is whether the *number* of tokens kept can be chosen **per image** from
+confidence signals, spending more compute only where it is needed.
+
+---
 
 ## Research Questions
 
-The thesis has two research questions. Each is a **self-contained project in its own
-top-level folder with its own README**; this file summarises both.
+The thesis comprises two research questions. **Each is a self-contained project in its
+own top-level folder with its own detailed README**; this document summarises both and is
+sufficient for an overview of the entire thesis.
 
-**RQ1 — Adaptive token pruning** (folder: [`compute-aware-vit-nonAI/`](compute-aware-vit-nonAI/))
+### RQ1 — Adaptive token pruning for efficient ViTs
+Folder: [`compute-aware-vit-nonAI/`](compute-aware-vit-nonAI/)
 
-> Can confidence-based adaptive token budget allocation improve the accuracy–efficiency
-> trade-off of Vision Transformers compared to static token pruning baselines?
+> *Can confidence-based adaptive token budget allocation improve the accuracy–efficiency
+> trade-off of Vision Transformers compared to static token pruning baselines?*
 
-**RQ2 — AI-assisted development** (folder: [`compute-aware-vit-AI-assisted/`](compute-aware-vit-AI-assisted/))
+### RQ2 — Impact of AI-assisted development on the research workflow
+Folder: [`compute-aware-vit-AI-assisted/`](compute-aware-vit-AI-assisted/)
 
-> What is the impact of AI-assisted software development tools on research productivity
-> and experimental quality in a deep learning research workflow?
+> *What is the impact of AI-assisted software development tools on research productivity
+> and experimental quality in a deep learning research workflow?*
+
+---
+
+## Background
+
+- **Backbone.** All models use DeiT (Data-efficient image Transformer) checkpoints from
+  `timm`: **DeiT-Tiny** (≈5.5M parameters) for the fine-tuned CIFAR-100 experiments and
+  **DeiT-Small** (≈22M parameters) for the zero-shot ImageNet experiments. Both use patch
+  size 16 at 224×224 resolution, giving 196 patch tokens plus one CLS token.
+- **Token scoring.** After a chosen "prune layer", each patch token receives a score equal
+  to the L2 norm of its embedding. The top-scoring tokens are retained and the rest are
+  discarded before the remaining transformer blocks run.
+- **Prune layer.** Pruning at layer 6 (of 12) is used throughout the main experiments; a
+  layer-3 variant is examined separately. Because layers before the prune point always run
+  at full token count, each budget model still costs 56–76% of the dense model rather than
+  its nominal token percentage — a fact central to the FLOPs analysis.
+- **Compute metric.** FLOPs are measured with `fvcore`. Where a strategy's cost depends on
+  a per-image routing decision (cascade, controllers), FLOPs are reported using a
+  per-budget lookup map; the sequential ("cumulative") cost of cascades is analysed
+  explicitly in the documentation.
+
+---
 
 ## Methods
 
-### RQ1 — the six inference strategies
+### 1. Dense baseline
+A DeiT-Tiny fine-tuned on CIFAR-100 with no pruning. It establishes the accuracy ceiling
+against which every efficiency strategy is measured.
 
-1. **Dense baseline** — fine-tuned DeiT-Tiny, no pruning; the accuracy reference.
-2. **Static token pruning** — after transformer layer 6, keep only the top-k patch
-   tokens by L2 norm (k ∈ {64, 96, 128}); the CLS token is never pruned.
-3. **Fixed-budget dynamic pruning** — the same mid-network pruning expressed as a keep
-   ratio (25% / 50% / 75%), one fine-tuned model per budget; these also serve as
-   building blocks for the adaptive methods.
-4. **Cascade inference** — run the 25% → 50% → 75% → dense models in sequence; each
-   image exits at the first stage whose prediction confidence clears a threshold, so
-   easy images stop early. Thresholds are tuned by exhaustive grid search.
-5. **Learned budget controller** — a small MLP reads mid-network token statistics and
-   confidence features and predicts the budget per image; trained with straight-through
-   Gumbel-softmax and, alternatively, with supervised oracle labels.
-6. **Rule-based controller** — a zero-parameter alternative: a mid-network confidence
-   check against two thresholds routes each image to a 25% / 50% / 75% budget.
+### 2. Static token pruning (`StaticPrunedViT`)
+After layer 6, the top-*k* patch tokens by L2 norm are kept (k ∈ {64, 96, 128} of 196);
+*k* is fixed and identical for every image. This is the non-adaptive baseline the research
+question compares against.
 
-### RQ2 — the AI-assisted implementation study
+```
+Input → Patch Embed → Blocks 1–6 → Score + keep top-k → Blocks 7–12 → CLS → Head
+```
 
-The RQ1 pipeline is re-implemented three times from scratch with an AI coding
-assistant, each variant receiving the same goal but a different instruction style:
-**variant A** a prescriptive step-by-step specification, **variant B** an
-architecture-first brief, **variant C** only the problem statement. Every session is
-logged as it happened — exact prompt, wall-clock time, human interventions, and
-corrections needed — and the generated code is preserved unmodified as study evidence.
+### 3. Fixed-budget dynamic pruning (`DynamicPrunedViT`, controller disabled)
+The same mid-network pruning expressed as a **keep ratio** (25% / 50% / 75%), with one
+model fine-tuned per budget. These models double as the building blocks for the cascade
+and as oracle checkpoints for controller training.
 
-## Key Results
+### 4. Cascade inference
+The four models (25% → 50% → 75% → dense) are run in sequence. Each image exits at the
+first stage whose top-1 softmax confidence meets a threshold; only images that remain
+uncertain escalate to more expensive models.
 
-### CIFAR-100 (fine-tuned DeiT-Tiny, prune layer 6)
+```
+Image → 25% model → conf ≥ t₁ ? → accept
+                    │ no
+                    ▼
+              50% model → conf ≥ t₂ ? → accept
+                          │ no
+                          ▼
+                    75% model → conf ≥ t₃ ? → accept
+                                │ no
+                                ▼
+                          dense model → always accept
+```
 
-| Strategy | Top-1 accuracy | FLOPs | Note |
-|---|---|---|---|
-| Dense baseline | 79.73% | 1.079 G | reference |
-| Static pruning (k=128) | 79.07% | 0.898 G | best static point |
-| Fixed budget 50% | 78.18% | 0.818 G | −1.55 pp at −24% FLOPs (98.1% of dense) |
-| **Cascade (best accuracy)** | **81.82%** | 0.763 G* | **+2.09 pp over dense** |
-| Learned controller (best) | 77.74% | — | failed: budget collapse |
+Thresholds are selected by exhaustive grid search over {0.3, 0.4, …, 0.9} on the
+validation set.
 
-### ImageNet-1K val (zero-shot DeiT-Small, no fine-tuning)
+### 5. Learned budget controller (`DynamicPrunedViT`, controller enabled)
+A lightweight 3-layer MLP attached at layer 6 predicts the token budget per image from a
+**12-dimensional feature vector**:
 
-| Strategy | Top-1 accuracy | FLOPs | Note |
-|---|---|---|---|
-| Dense baseline | 79.71% | 4.251 G | reference |
-| Fixed budget 75% | 79.29% | 3.729 G | −0.42 pp at −12% FLOPs |
-| Cascade (best accuracy) | 79.71% | 3.970 G* | matches dense |
-| **Rule-based controller** | **79.67%** | 4.040 G* | **−0.04 pp with zero training** |
+- **8 token-score statistics:** mean, standard deviation, max, min, top-1 score, top-2
+  score, top-1/top-2 margin, and entropy of the score distribution.
+- **4 CLS-confidence features:** class-distribution entropy, top-1 class confidence,
+  top-1/top-2 class margin, and the L2 norm of the CLS vector.
 
-\* Cascade/controller FLOPs use a per-budget lookup map; see the accounting caveat in
+The controller outputs logits over four budget options {0.25, 0.50, 0.75, 1.0}. Two
+training regimes were explored: **straight-through Gumbel-softmax** (end-to-end, with a
+confidence-weighted budget penalty and optional distillation from a dense teacher) and
+**supervised** training on oracle budget labels (each sample labelled with the smallest
+budget that classifies it correctly), including class-weighted and focal-loss variants.
+
+### 6. Rule-based controller (`DynamicPrunedViT` with `rule_based=True`)
+A zero-parameter alternative. At layer 10, the CLS token is passed through the classifier
+head to obtain a preliminary confidence, and a two-threshold rule assigns the budget:
+
+```
+conf ≥ high_threshold  → keep 25% tokens
+conf ≥ low_threshold   → keep 50% tokens
+otherwise              → keep 75% tokens
+```
+
+The `(high, low)` threshold pair is swept on the validation set.
+
+### RQ2 — AI-assisted implementation study
+The RQ1 pipeline is re-implemented three times from scratch with an AI coding assistant,
+each variant given the same goal under a different instruction style — **variant A**
+prescriptive step-by-step, **variant B** architecture-first, **variant C** problem-level.
+Every session is logged (prompt, wall-clock time, human interventions, corrections), and
+the generated code is preserved unmodified as study evidence.
+
+---
+
+## Experimental Setup
+
+| Aspect | CIFAR-100 | ImageNet-1K |
+|---|---|---|
+| Backbone | DeiT-Tiny (~5.5M params) | DeiT-Small (~22M params) |
+| Regime | fine-tuned, 20 epochs | zero-shot (pretrained, no fine-tuning) |
+| Split | 50k train / 10k val | 50k validation |
+| Optimiser | AdamW, lr 1e-4, weight decay 1e-4 | — (evaluation only) |
+| Batch size | 32 | 32 |
+| Input | 224×224, 196 patch tokens | 224×224, 196 patch tokens |
+| Prune layer | 6 (layer-3 studied separately) | 6 and 10 (rule controller) |
+| FLOPs | fvcore (measured); per-budget map for routed methods |
+| Seed | 42 (deterministic cuDNN) | 42 |
+
+---
+
+## Results
+
+All figures below are reproduced from
+[`docs/12_results_master_tables.md`](compute-aware-vit-nonAI/docs/12_results_master_tables.md),
+which is generated from the recorded `metrics.json` and result files.
+
+### CIFAR-100 — fine-tuned DeiT-Tiny, prune layer 6
+
+| Strategy | Setting | Top-1 acc | FLOPs (G) | Throughput (/s) |
+|---|---|---|---|---|
+| Dense baseline | 100% | 79.73% | 1.0794 | 2930.9 |
+| Static pruning | k=128 | 79.07% | 0.8981 | 3418.7 |
+| Static pruning | k=96 | 78.02% | 0.8127 | 3354.7 |
+| Static pruning | k=64 | 76.19% | 0.7274 | 4140.7 |
+| Fixed budget | 75% (147 tokens) | 79.16% | 0.9487 | 3160.9 |
+| Fixed budget | 50% (98 tokens) | 78.18% | 0.8181 | 3780.4 |
+| Fixed budget | 25% (49 tokens) | 75.83% | 0.6874 | 4405.5 |
+| **Cascade** | best accuracy (0.9, 0.9, 0.9) | **81.82%** | 0.7629* | — |
+| Cascade | best efficiency (0.3, 0.3, 0.3) | 76.29% | 0.6889* | — |
+| Learned controller | best (e2e_v2) | 77.74% | — | — |
+
+### ImageNet-1K validation — zero-shot DeiT-Small, prune layer 6
+
+| Strategy | Setting | Top-1 acc | FLOPs (G) | Throughput (/s) |
+|---|---|---|---|---|
+| Dense baseline | 100% | 79.71% | 4.2507 | 2568.1 |
+| Fixed budget | 75% | 79.29% | 3.7292 | 2861.5 |
+| Fixed budget | 50% | 77.74% | 3.2078 | 3162.4 |
+| Fixed budget | 25% | 71.30% | 2.6863 | 3664.3 |
+| Cascade | best accuracy (0.9, 0.9, 0.8) | 79.71% | 3.9695* | — |
+| Cascade | best efficiency (0.3, 0.3, 0.3) | 75.05% | 2.8058* | — |
+| **Rule controller** | best accuracy (high 0.8 / low 0.5, layer 10) | **79.67%** | 4.0396* | — |
+| Rule controller | best efficiency (high 0.5 / low 0.2, layer 10) | 79.46% | 3.9405* | — |
+
+\* Routed methods: FLOPs from a per-budget lookup map (exit-only accounting). The true
+sequential cost of cascades is analysed under cumulative accounting in
 [`docs/13`](compute-aware-vit-nonAI/docs/13_findings_limitations.md).
 
-### Main findings
+### Per-image budget distribution (best operating points)
 
-- **The cascade beats the dense model on CIFAR-100** (+2.09 pp at lower average
-  compute) by routing easy images to cheap models — an implicit ensemble effect.
-- **The rule-based controller is the practical adaptive winner on ImageNet**: within
-  0.04 pp of dense accuracy with no training at all.
-- **The learned controller failed** — across Gumbel-softmax, supervised, focal-loss,
-  and distillation training it collapsed to a single budget. This negative result is
-  documented in full ([`docs/10`](compute-aware-vit-nonAI/docs/10_learned_budget_controller.md),
-  [`docs/13`](compute-aware-vit-nonAI/docs/13_findings_limitations.md)).
-- Under honest **cumulative** FLOPs accounting, cascading is Pareto-dominated by single
-  fixed-budget models on these settings ([`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md),
-  [`docs/17`](compute-aware-vit-nonAI/docs/17_cascade_vs_static_comparison.md)).
+| Experiment | 25% | 50% | 75% | 100% |
+|---|---|---|---|---|
+| CIFAR cascade (0.9, 0.9, 0.9) | 67.2% | 17.3% | 5.6% | 9.9% |
+| ImageNet cascade (0.9, 0.9, 0.8) | 1.0% | 2.7% | 45.8% | 50.6% |
+| ImageNet rule (high 0.8 / low 0.5) | 2.2% | 24.5% | 73.3% | — |
 
-The complete result tables for every technique — accuracy, FLOPs, throughput, and
-budget distributions on both datasets — are in
-[`docs/12_results_master_tables.md`](compute-aware-vit-nonAI/docs/12_results_master_tables.md).
+CIFAR-100 images are mostly "easy" (two-thirds exit at the 25% budget), whereas ImageNet
+images predominantly require the heavier budgets — a quantitative confirmation that
+ImageNet is substantially harder to compress.
+
+---
+
+## Findings and Discussion
+
+1. **The cascade exceeds the dense model on CIFAR-100** — 81.82% versus 79.73%
+   (+2.09 pp) at ~29% lower average FLOPs. Routing high-confidence images to cheaper
+   models acts as an implicit ensemble.
+2. **The rule-based controller is the practical adaptive winner on ImageNet** — within
+   0.04 pp of dense accuracy with **no training**, forming a strong baseline the trained
+   controllers failed to beat.
+3. **The learned controller failed** — across Gumbel-softmax, supervised cross-entropy,
+   class-weighted, focal-loss, and distillation variants it collapsed to a single budget.
+   The mid-network features at layer 6 do not reliably separate easy from hard images on
+   the long-tailed CIFAR-100 distribution. This is reported in full as a negative result.
+4. **Fixed budgets are hard to beat under honest accounting** — because layers before the
+   prune point always run at full token count, each budget model costs 56–76% of the dense
+   model. Under cumulative FLOPs accounting, cascading several stages is Pareto-dominated
+   by a single well-chosen fixed budget across the useful accuracy range.
+5. **L2-norm token scoring is a reliable, training-free saliency signal**, and prediction
+   confidence is a sound early-exit criterion (accuracy rises monotonically with
+   confidence at every stage).
+
+Limitations and the FLOPs-accounting caveat are detailed in
+[`docs/13_findings_limitations.md`](compute-aware-vit-nonAI/docs/13_findings_limitations.md).
+
+---
 
 ## Repository Structure
 
 ```
 compute-aware-vit-thesis/
 ├── README.md                       ← thesis overview (this file)
+│
 ├── compute-aware-vit-nonAI/        ← RQ1: reference implementation & results
 │   ├── README.md                   ← full write-up, setup, exact results
-│   ├── src/                        ← models, training engine, datasets, utils
-│   ├── configs/                    ← experiments as YAML, grouped dense/static/dynamic
+│   ├── src/
+│   │   ├── train.py                ← single config-driven entry point
+│   │   ├── models/                 ← ViT factory + static / dynamic / rule variants
+│   │   ├── training/engine.py      ← train / validate loops (incl. controller)
+│   │   ├── datasets/               ← CIFAR-100 and ImageNet loaders
+│   │   └── utils/                  ← config loading, seeding, output dirs
+│   ├── configs/                    ← experiments as YAML, grouped by model family
+│   │   ├── dense/  static/  dynamic/  _shared/
 │   ├── scripts/                    ← cascade, evaluation, and label-building scripts
 │   ├── docs/                       ← numbered walkthroughs 00–17 + master result tables
-│   └── outputs/ data/ logs/        ← runs, datasets, logs (large artifacts gitignored)
-└── compute-aware-vit-AI-assisted/  ← RQ2: AI-assisted study
+│   └── outputs/  data/  logs/      ← runs, datasets, logs (large artifacts gitignored)
+│
+└── compute-aware-vit-AI-assisted/  ← RQ2: AI-assisted development study
     ├── README.md                   ← study design and measurement protocol
     ├── SETUP.md  logs/             ← environment protocol + timed setup log
-    └── variant_a/ variant_b/ variant_c/   ← the three implementations + session logs
+    └── variant_a/ variant_b/ variant_c/   ← three implementations + session logs
 ```
 
-All experiments are run **from inside a project folder**, not from the root — paths
-such as `src/`, `configs/`, and `outputs/` are relative to the project folder.
+All experiments are run **from inside a project folder**, not from the repository root —
+paths such as `src/`, `configs/`, and `outputs/` are relative to the project folder.
+
+---
 
 ## Getting Started
 
 ```bash
 git clone https://github.com/aarshad002/compute-aware-vit-thesis.git
-cd compute-aware-vit-thesis/compute-aware-vit-nonAI   # RQ1
+cd compute-aware-vit-thesis/compute-aware-vit-nonAI      # RQ1
 
 conda create -n compute_aware_vit python=3.11
 conda activate compute_aware_vit
 pip install -r requirements.txt
+```
 
-# Train the dense baseline (CIFAR-100 downloads automatically)
+Representative commands (full list in the RQ1 README and `docs/14`):
+
+```bash
+# Dense baseline (CIFAR-100 downloads automatically on first run)
 python src/train.py --config configs/dense/baseline_dense.yaml
+
+# Static pruning and fixed-budget dynamic pruning
+python src/train.py --config configs/static/static_prune_k128.yaml
+python src/train.py --config configs/dynamic/dynamic_fixed_50.yaml
+
+# ImageNet single-model evaluation (zero-shot, no checkpoint required)
+python scripts/imagenet_eval_pruning.py --config configs/dynamic/imagenet_fixed50_eval.yaml
+
+# Cascade threshold search
+python scripts/cascade_inference.py
+python scripts/imagenet_cascade_inference.py --config configs/dynamic/imagenet_cascade_inference.yaml
+
+# Controllers
+python src/train.py --config configs/dynamic/dynamic_ctrl_gumbel_v2.yaml   # learned
+python scripts/imagenet_rule_controller_eval.py                            # rule-based
 ```
 
 **Data and checkpoints.** CIFAR-100 downloads automatically. ImageNet-1K validation
-(~13 GB, licensed) must be provided at `data/imagenet/val/<wnid>/` — all ImageNet
-results are zero-shot, so they need **no checkpoints**. Model checkpoints are not
-shipped in the repository; the CIFAR cascade requires training the four budget models
-first (the exact order and the pinned checkpoint provenance are in
-[`docs/14_reproducibility.md`](compute-aware-vit-nonAI/docs/14_reproducibility.md)).
+(~13 GB, licensed) must be provided at `data/imagenet/val/<wnid>/`. Model checkpoints are
+not shipped in the repository (they are large and regenerable); all **ImageNet** results
+are zero-shot and need no checkpoints, while the **CIFAR cascade** requires training the
+four budget models first. The exact training order and pinned checkpoint provenance are in
+[`docs/14_reproducibility.md`](compute-aware-vit-nonAI/docs/14_reproducibility.md).
+
+---
+
+## Reproducibility
+
+- Every training run sets seed 42 across Python, NumPy, and PyTorch with deterministic
+  cuDNN; evaluation loaders use `shuffle=False`.
+- Threshold sweeps are exhaustive grids and are therefore deterministic given the
+  checkpoints.
+- Dependencies are pinned in each project's `requirements.txt`, verified against the
+  `thesis_env` conda environment; per-machine environment snapshots are archived under
+  [`compute-aware-vit-nonAI/docs/env_snapshots/`](compute-aware-vit-nonAI/docs/env_snapshots/).
+- Exact commands, the config-to-experiment map, and canonical checkpoint identifiers are
+  in [`docs/14_reproducibility.md`](compute-aware-vit-nonAI/docs/14_reproducibility.md).
+
+---
 
 ## Documentation
 
 | To find | Read |
 |---|---|
 | RQ1 full write-up, setup, findings | [`compute-aware-vit-nonAI/README.md`](compute-aware-vit-nonAI/README.md) |
+| Model families (dense / static / dynamic) | [`docs/MODEL_FAMILIES.md`](compute-aware-vit-nonAI/docs/MODEL_FAMILIES.md) |
 | Exact numbers for every technique | [`docs/12_results_master_tables.md`](compute-aware-vit-nonAI/docs/12_results_master_tables.md) |
 | Method-by-method walkthroughs | [`compute-aware-vit-nonAI/docs/`](compute-aware-vit-nonAI/docs/) (`00`–`17`) |
 | Commands to reproduce each result | [`docs/14_reproducibility.md`](compute-aware-vit-nonAI/docs/14_reproducibility.md) |
 | What failed and why | [`docs/13_findings_limitations.md`](compute-aware-vit-nonAI/docs/13_findings_limitations.md) |
 | RQ2 study design and session logs | [`compute-aware-vit-AI-assisted/README.md`](compute-aware-vit-AI-assisted/README.md) |
 
+---
+
 ## Environment
 
 - **Framework:** PyTorch 2.7.1 (CUDA 11.8), timm 1.0.26, fvcore for FLOPs counting
-- **Backbones:** DeiT-Tiny (5.5M parameters, CIFAR-100), DeiT-Small (22M, ImageNet)
-- **Hardware:** NVIDIA GPUs on the ULHPC cluster (SLURM)
-- **Reproducibility:** fixed seed 42, deterministic cuDNN, pinned dependencies per
-  project (`requirements.txt`)
+- **Backbones:** DeiT-Tiny (~5.5M parameters, CIFAR-100), DeiT-Small (~22M, ImageNet)
+- **Hardware:** NVIDIA GPUs on the University of Luxembourg HPC (ULHPC) cluster, via SLURM
+- **Python:** 3.11 (`thesis_env`); dependencies pinned in `requirements.txt`
+
+---
 
 ## License and Citation
 
 The code is published for academic transparency and review; no open-source license is
 granted. If you build on this work, please cite the thesis:
 
-> Arooba Arshad, *Compute-Aware Vision Transformers: Adaptive Token Pruning for
-> Efficient Inference*, Master's thesis, University of Luxembourg, 2026.
+> Arooba Arshad, *Compute-Aware Vision Transformers: Adaptive Token Pruning for Efficient
+> Inference*, Master's thesis, University of Luxembourg, 2026.
+
+---
+
+## Acknowledgements
+
+This thesis was carried out under the supervision of **Decebal Constantin Mocanu** and
+with the guidance of advisor **Boqian Wu**, at the University of Luxembourg. Experiments
+were run on the University of Luxembourg HPC (ULHPC) cluster.
