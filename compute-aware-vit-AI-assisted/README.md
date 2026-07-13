@@ -117,41 +117,144 @@ rounds with zero human corrections**:
 - **V4** ablation showed pruning at layer 6 re-collapses — layer 3's weaker features are
   what *force* genuine routing.
 
-## Variant B — Session 2 extension experiments
+## Variant B — Extension Study (Session 2)
 
-After the base pipeline, Variant B was extended with a second round of work (an original
-contribution of this thesis). All results use a **clean 45k/5k/10k train/val/test split**
-with select-on-validation / test-once discipline, so these are the honest reported numbers.
-Full write-ups are in [`variant_b/docs/`](variant_b/docs/).
+After the base pipeline, Variant B was extended with a second round of work that probes the
+adaptive-inference question more rigorously. Some of these experiments implement methods
+established in prior literature (attributed below); the contribution here is the honest,
+like-for-like evaluation of each **in this thesis's setting** — DeiT-Tiny on CIFAR-100,
+32→224 upsampling — under one shared, leak-free protocol. Full per-experiment write-ups are
+in [`variant_b/docs/`](variant_b/docs/).
 
-**Clean-split baselines** (test accuracy): dense 79.50%, static 25/50/75%
-72.83% / 76.86% / 78.91%, controller 77.89% (lower than the original split because training
-now uses 45k images and test is the untouched official split).
+### Evaluation Protocol and Baselines
 
-| # | Extension | Outcome | Key result |
-|---|---|---|---|
-| 1 | Clean train/val/test split protocol | methodology upgrade | 45k/5k/10k, split seed 42; thresholds/gates chosen on val, test used once |
-| 2 | Cascade re-run under clean split (512 combos) | positive | At static-75's budget the cascade reaches **79.73% vs static-75's 78.91%** (0.886 G) |
-| 3 | Learned exit gate (logistic gate replacing the threshold) | **negative** | Never beat the plain threshold rule; sat on/below its accuracy–FLOPs frontier |
-| 4 | Oracle ceiling diagnostic | positive (headroom) | Perfect single-pass routing = **91.02% at 0.546 G** (+11.5 pp over dense at half compute); 81.8% of images already correct at the 25% budget |
-| 5 | Early-signal separability probe | **negative** | Layer-1–3 features predict "needs a bigger budget" at AUROC ≈ 0.55 — barely above chance; explains why the oracle headroom is unreachable in practice |
-| 6 | Shared-prefix progressive widening | **abandoned** | Cross-budget accuracy collapses (dense weights at 25% budget: 53.52%); cumulative exit costs still explode |
-| 7 | **Multi-budget ViT** | **winning result** | One model trained for all budgets (sandwich training + in-place distillation, prune layer 3) beats every specialist at every budget |
-| 8 | Adaptive Token Sampling (ATS, training-free) | **negative** | Best 76.43% at 0.728 G — dominated by the multi-budget model's 50% point (79.14% at 0.687 G) |
+The original runs selected cascade thresholds on the same 10k split used for reporting.
+The extension study fixes this with a clean split: **train 45,000 / validation 5,000 /
+test 10,000** (split seed 42). *All* selection — thresholds, gate parameters, K_max, best
+epoch — is done on validation; the test set is touched **once** per selected operating
+point. These are the honest thesis numbers, and they are lower than the original-split
+numbers because training now uses 45k images and the test set is genuinely untouched.
 
-**Extension 7 (multi-budget ViT) in detail** — a single model runnable at 25/50/75/100%
-token budgets:
-
-| Budget | Multi-budget | Clean-split specialist |
+| Baseline (clean split) | Test accuracy | FLOPs (G) |
 |---|---|---|
-| 25% | 74.83% | 72.83% |
-| 50% | 79.14% | 76.86% |
-| 75% | 80.33% | 78.91% |
-| 100% | 80.70% | 79.50% (dense) |
+| Dense | 79.50% | 1.079 |
+| Static 25% / 50% / 75% | 72.83% / 76.86% / 78.91% | 0.491 / 0.687 / 0.883 |
+| Confidence controller | 77.89% | 0.685 |
 
-One model beats all four specialists at every budget, while being 4× cheaper to store and
-train, with no inference latency penalty. Confirmed across seeds 7 / 42 / 123
-(e.g. 50% budget 78.50% ± 0.54%).
+### Cascade Under the Clean Protocol
+
+The per-stage cascade was re-swept over a finer 8³ = 512-combination grid on validation.
+At the static-75 compute budget the cascade reaches **79.73% at 0.886 G, beating the
+matched-cost static-75 model (78.91% at 0.883 G)**, and at the static-50 budget it reaches
+77.48% vs static-50's 76.86%. Validation-to-test generalisation is tight (differences
+≤ 0.5%), confirming the selection protocol is trustworthy. This reproduces, under honest
+accounting, the RQ1 finding that the ensemble-like cascade can beat a *single* matched-cost
+static model on CIFAR-100 — while the cumulative-cost caveat still applies at the
+high-accuracy end (81.75% at 1.356 G).
+
+### Diagnostic 1 — Oracle Routing Ceiling
+
+To bound what any per-image router could achieve, an oracle was measured: for each image,
+the *smallest* budget whose model classifies it correctly, single-pass (each image pays
+only its chosen model). Ground-truth labels are used solely to define this unattainable
+ceiling.
+
+Result: **91.02% accuracy at 0.546 G — +11.5 pp over dense at roughly half the compute.**
+The distribution shows **81.8%** of test images are already solved by the cheapest 25%
+model; the entire problem is identifying the ~18% that need more. The ceiling exceeds dense
+accuracy because the budget models are diverse (5.9% of images are correct at 25% but wrong
+at dense — an ensemble effect). *Conclusion: the model zoo is not the bottleneck; the
+routing signal is.*
+
+### Diagnostic 2 — Early-Signal Separability Probe (negative)
+
+The oracle above is single-pass, so a real router must decide **cheaply, before most of the
+network runs**. This probe asks whether features available by layer 3 can predict which
+images need a larger budget. A 5-fold cross-validated logistic-regression probe over 18
+cheap features (CLS-token drift between layers 1–3, per-layer patch-norm statistics,
+saliency entropy, raw-image texture/contrast/edge density) was fit to predict "the 25%
+model will be wrong".
+
+Result: **AUROC ≈ 0.55 (chance = 0.50)** — barely separable. Image difficulty is simply not
+encoded in early-layer features on this backbone and dataset. This is the same obstacle that
+sank the RQ1 learned controller, now measured directly: reliable difficulty signal exists
+only *after* a full model has run, which is why every practical router plateaus far below
+the 91% oracle ceiling.
+
+### Method A — Shared-Prefix Progressive Widening (abandoned)
+
+Because all budget models share the pre-pruning blocks (0–3), a natural idea is to reuse a
+*single* checkpoint at every budget so an escalated image pays only for the wider tail, not
+a whole new model. A training-free feasibility check found the specialists' weights are
+nearly interchangeable (mean parameter difference 0.66–0.81%), **but accuracy collapses
+off-budget** — the dense checkpoint run at the 25% budget loses 27 points (80.74% → 53.52%).
+Every widening curve stayed below the specialist frontier at matched FLOPs, so the approach
+was abandoned. The lesson — models specialise to their token count unless *trained* at all
+budgets — motivates the multi-budget model below.
+
+### Method B — Learned Exit Gate (negative)
+
+A supervisor-suggested replacement for the cascade's fixed confidence threshold: a small
+logistic-regression gate per stage predicts whether the stage's prediction is correct, from
+four features (max-confidence, entropy, top-1/top-2 margin, stage id), trained on 3,000
+validation images. Across operating points the gate **never beat the plain threshold rule**
+— at the static-75 budget it traded −0.6 pp accuracy for only −1.4% FLOPs; at the
+high-accuracy point it was worse on both axes. The cause is that max-softmax confidence
+already carries almost all of the exit signal the threshold rule uses, leaving a linear gate
+on summary statistics nothing to add. Reported as an honest exploratory negative result.
+
+### Method C — Adaptive Token Sampling (ATS), training-free (negative)
+
+**Adaptive Token Sampling (Fayyaz et al., ECCV 2022)** is a published, training-free
+inference method that resamples tokens by attention-weighted importance at each block, so
+the number of kept tokens adapts per image with no retraining. It is the natural
+literature baseline against this thesis's *retrained* budget models. The original paper
+evaluated ATS on ImageNet; **it was not tested on CIFAR-100**, so applying it here is itself
+a new evaluation point. ATS was attached to the dense clean-split checkpoint and K_max swept
+over {49, 98, 147, 196} (selected on validation, tested once; input-dependent FLOPs
+sample-averaged over 1,000 images via fvcore).
+
+| K_max | Test accuracy | Avg FLOPs (G) |
+|---|---|---|
+| 49 | 59.52% | 0.374 |
+| 98 | 70.18% | 0.506 |
+| 147 | 74.81% | 0.626 |
+| 196 (selected) | **76.43%** | 0.728 |
+
+ATS **runs correctly and does produce genuine per-image token adaptation**, but at its best
+point (76.43% at 0.728 G) it does **not reach this setting's static/retrained frontier** —
+the retrained static-50 model already gives 76.86% at 0.687 G, and the multi-budget model
+below gives 79.14% at 0.687 G. The gap is training: ATS reuses dense weights that never saw
+token dropping, and on low-resolution, heavily upsampled CIFAR-100 images that costs too
+much accuracy. This positions the thesis's retrained approach against a published
+training-free alternative under an identical honest protocol, and reports a setting
+(CIFAR-100) the original method did not cover.
+
+### Method D — Multi-Budget ViT (winning result)
+
+A single network trained to run at **all** token budgets, making budget a free runtime knob
+with no model zoo and no cascade re-runs. The training recipe adapts two established
+techniques from the slimmable / anytime-network literature — **sandwich-rule sampling**
+(each step trains the smallest 25% budget, the full 100% budget, and one random middle
+budget) and **in-place distillation** (the full-budget forward acts as an online teacher for
+the pruned forwards, distillation weight 0.5) — applied here to *token budgets* in a DeiT-Tiny
+pruned at layer 3.
+
+| Budget | FLOPs (G) | Multi-budget (test) | Clean-split specialist | Δ |
+|---|---|---|---|---|
+| 25% | 0.491 | **74.83%** | 72.83% (static-25) | +2.00 |
+| 50% | 0.687 | **79.14%** | 76.86% (static-50) | +2.28 |
+| 75% | 0.883 | **80.33%** | 78.91% (static-75) | +1.42 |
+| 100% | 1.079 | **80.70%** | 79.50% (dense) | +1.20 |
+
+**One model beats every specialist at every budget**, at 4× lower storage and training cost
+and with **no inference latency penalty** (at a fixed budget all images in a batch run the
+identical path — e.g. 0.087 ms/image at 25% for both). The result holds across seeds 7 / 42
+/ 123 (e.g. 50% budget 78.50% ± 0.54%; every seed beats the static-25 specialist at the 25%
+budget). The joint training acts as a regulariser and shared ensemble teacher, which is why
+the shared model surpasses each specialist even at that specialist's own budget. This is the
+extension study's practical resolution: rather than route *before* computing (which the
+early-signal probe shows is unreliable), make one network cheap at every budget.
 
 ## Cross-variant findings
 

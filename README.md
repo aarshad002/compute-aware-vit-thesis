@@ -153,6 +153,14 @@ Image → 25% model → conf ≥ t₁ ? → accept
 Thresholds are selected by exhaustive grid search over {0.3, 0.4, …, 0.9} on the
 validation set.
 
+**Sub-dense cascade variant.** A follow-up removes the dense fallback entirely and cascades
+a **10% → 25% → 50%** ladder (a 10% model was trained specifically for this), with the 50%
+stage forced-accept. This reframes the question to *the best accuracy achievable under a
+strict sub-dense compute budget*, and — together with the cumulative-FLOPs analysis — tests
+whether confidence-gated early exit can beat single fixed budgets when no expensive stage is
+available. Results are in [Findings](#findings-and-discussion) and
+[`docs/16`](compute-aware-vit-nonAI/docs/16_subdense_cascade_cifar.md).
+
 ### 5. Learned budget controller (`DynamicPrunedViT`, controller enabled)
 A lightweight 3-layer MLP attached at layer 6 predicts the token budget per image from a
 **12-dimensional feature vector**:
@@ -346,26 +354,40 @@ recorded. Full detail, tables, and the per-experiment write-ups are in the
   collapsed to the minimum budget from a non-differentiable `argmax`; V2 to the maximum;
   V3 balanced with auxiliary CE + entropy regularisation) with **zero human corrections**.
 
-### Variant B extension experiments (an original contribution)
+### Variant B extension study
 
-A second round of work in Variant B, under a clean 45k/5k/10k train/val/test split with
-select-on-validation / test-once discipline, produced eight further experiments — including
-a genuinely new method — with results in [`variant_b/docs/`](compute-aware-vit-AI-assisted/variant_b/docs/):
+A second round of work in Variant B carried the adaptive-inference question further under a
+clean **45k/5k/10k** train/val/test split with select-on-validation / test-once discipline.
+Some experiments implement methods established in prior literature; the contribution is
+their honest, like-for-like evaluation **in this thesis's setting** (DeiT-Tiny, CIFAR-100).
+Full write-ups: [`variant_b/docs/`](compute-aware-vit-AI-assisted/variant_b/docs/).
 
-- **Multi-budget ViT (winning result).** A single model trained to run at all budgets
-  (sandwich training + in-place distillation, prune layer 3) **beats every specialist at
-  every budget** — 25%: 74.83% vs 72.83%, 50%: 79.14% vs 76.86%, 75%: 80.33% vs 78.91%,
-  100%: 80.70% vs 79.50% — while being 4× cheaper to store and train, with no latency
-  penalty, confirmed across three seeds.
-- **Oracle ceiling diagnostic.** Perfect single-pass routing would reach 91.02% at 0.546 G
-  (+11.5 pp over dense at half the compute); 81.8% of images are already correct at the 25%
-  budget — large theoretical headroom.
-- **Early-signal probe (negative).** Layer-1–3 features predict "needs a bigger budget" at
-  AUROC ≈ 0.55, barely above chance — explaining why that headroom is unreachable in
-  practice, and echoing RQ1's learned-controller failure.
-- **Honest negatives.** A learned exit gate, training-free Adaptive Token Sampling (ATS),
-  and shared-prefix progressive widening were all tried and reported as not improving on
-  the simpler baselines.
+- **Multi-budget ViT — the winning method.** A single network trained to run at every token
+  budget, so budget becomes a free runtime knob. The recipe adapts two established
+  slimmable/anytime-network techniques — **sandwich-rule sampling** and **in-place
+  distillation** — to token budgets in a DeiT-Tiny pruned at layer 3. It **beats every
+  separately-trained specialist at every budget** (25%: 74.83% vs 72.83%; 50%: 79.14% vs
+  76.86%; 75%: 80.33% vs 78.91%; 100%: 80.70% vs 79.50%), at 4× lower storage/training cost
+  and with no inference latency penalty, confirmed across seeds 7/42/123.
+- **Adaptive Token Sampling (ATS) — a published baseline, newly evaluated on CIFAR-100.**
+  ATS (Fayyaz et al., ECCV 2022) is a training-free method that resamples tokens by
+  attention importance per image; the original paper evaluated it on ImageNet, **not
+  CIFAR-100**. Applied here training-free, **it works and does produce genuine per-image
+  token adaptation, but it does not reach this setting's static/retrained frontier**: its
+  best point is 76.43% at 0.728 G, below the retrained static-50 (76.86% at 0.687 G) and
+  well below the multi-budget model (79.14% at 0.687 G). The gap is training — reusing dense
+  weights that never saw token dropping costs too much accuracy on upsampled CIFAR-100.
+- **Oracle ceiling diagnostic.** With perfect single-pass routing the model zoo could reach
+  **91.02% at 0.546 G** (+11.5 pp over dense at half the compute); 81.8% of images are
+  already correct at the 25% budget. The bottleneck is the routing signal, not the models.
+- **Early-signal probe (negative).** A probe on layer-1–3 features predicts "needs a bigger
+  budget" at only **AUROC ≈ 0.55** (chance 0.50) — explaining why the oracle headroom is
+  unreachable in practice, and independently confirming RQ1's learned-controller failure:
+  reliable difficulty signal appears only after a full forward pass.
+- **Further honest negatives.** A learned exit gate (a logistic gate replacing the
+  confidence threshold) never beat the plain threshold rule, and shared-prefix progressive
+  widening (reusing one checkpoint across budgets) collapsed off-budget — both reported as
+  exploratory negative results.
 
 ### Cross-cutting finding
 
