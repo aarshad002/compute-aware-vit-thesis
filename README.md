@@ -3,11 +3,13 @@
 | | |
 |---|---|
 | **Author** | Arooba Arshad |
-| **Supervisor** | Decebal Constantin Mocanu |
+| **Supervisor** | Prof. Decebal Constantin Mocanu |
+| **Reviewer** | Prof. Thomas Engel |
 | **Advisor** | Boqian Wu |
-| **Degree** | Master of Science in Computer Science |
+| **Degree** | Master in Information and Computer Sciences |
 | **Institution** | University of Luxembourg |
 | **Year** | 2026 |
+| **AI assistance** | Claude Code was used for Part II, the AI-Assisted Development Study, and is the assistant examined there. Part I was developed manually. |
 
 ---
 
