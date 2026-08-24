@@ -1,0 +1,275 @@
+{
+  "tag": "subset5000",
+  "n_images": 5000,
+  "n_total": 50000,
+  "prune_layer": 6,
+  "layers": [
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "oracle_label_counts": {
+    "0.25": 3561,
+    "0.50": 411,
+    "0.75": 151,
+    "dense": 877
+  },
+  "per_budget_accuracy_this_run": {
+    "0.25": 71.22,
+    "0.50": 77.52,
+    "0.75": 79.5,
+    "dense": 80.24
+  },
+  "reference_accuracy_full50k": {
+    "0.25": 71.298,
+    "0.50": 77.738,
+    "0.75": 79.294,
+    "dense": 79.714
+  },
+  "nan_inf": {
+    "6": {
+      "nan": 0,
+      "inf": 0
+    },
+    "7": {
+      "nan": 0,
+      "inf": 0
+    },
+    "8": {
+      "nan": 0,
+      "inf": 0
+    },
+    "9": {
+      "nan": 0,
+      "inf": 0
+    },
+    "10": {
+      "nan": 0,
+      "inf": 0
+    }
+  },
+  "runtime_sec": {
+    "n_images": 5000,
+    "feature+dense_pass_sec": 2.7,
+    "oracle_pruned_passes_sec": 5.5
+  },
+  "layer_results": {
+    "6": {
+      "class_counts": {
+        "0.25": 3561,
+        "0.50": 411,
+        "0.75": 151,
+        "dense": 877
+      },
+      "probe_accuracy": 0.712,
+      "probe_balanced_accuracy": 0.25,
+      "probe_balanced_weight_accuracy": 0.17666666666666667,
+      "probe_balanced_weight_balanced_accuracy": 0.27582502584390634,
+      "majority_baseline_test": 0.712,
+      "majority_baseline_full": 0.7122,
+      "uniform_baseline": 0.25,
+      "stratified_split": true,
+      "n_test": 1500,
+      "confusion_matrix_[0.25,0.5,0.75,dense]": [
+        [
+          1068,
+          0,
+          0,
+          0
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ],
+        [
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          263,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "7": {
+      "class_counts": {
+        "0.25": 3561,
+        "0.50": 411,
+        "0.75": 151,
+        "dense": 877
+      },
+      "probe_accuracy": 0.712,
+      "probe_balanced_accuracy": 0.25,
+      "probe_balanced_weight_accuracy": 0.2613333333333333,
+      "probe_balanced_weight_balanced_accuracy": 0.24083764422400367,
+      "majority_baseline_test": 0.712,
+      "majority_baseline_full": 0.7122,
+      "uniform_baseline": 0.25,
+      "stratified_split": true,
+      "n_test": 1500,
+      "confusion_matrix_[0.25,0.5,0.75,dense]": [
+        [
+          1068,
+          0,
+          0,
+          0
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ],
+        [
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          263,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "8": {
+      "class_counts": {
+        "0.25": 3561,
+        "0.50": 411,
+        "0.75": 151,
+        "dense": 877
+      },
+      "probe_accuracy": 0.712,
+      "probe_balanced_accuracy": 0.25,
+      "probe_balanced_weight_accuracy": 0.4146666666666667,
+      "probe_balanced_weight_balanced_accuracy": 0.29331700546645895,
+      "majority_baseline_test": 0.712,
+      "majority_baseline_full": 0.7122,
+      "uniform_baseline": 0.25,
+      "stratified_split": true,
+      "n_test": 1500,
+      "confusion_matrix_[0.25,0.5,0.75,dense]": [
+        [
+          1068,
+          0,
+          0,
+          0
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ],
+        [
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          263,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "9": {
+      "class_counts": {
+        "0.25": 3561,
+        "0.50": 411,
+        "0.75": 151,
+        "dense": 877
+      },
+      "probe_accuracy": 0.71,
+      "probe_balanced_accuracy": 0.2500142407541903,
+      "probe_balanced_weight_accuracy": 0.436,
+      "probe_balanced_weight_balanced_accuracy": 0.3006115370321625,
+      "majority_baseline_test": 0.712,
+      "majority_baseline_full": 0.7122,
+      "uniform_baseline": 0.25,
+      "stratified_split": true,
+      "n_test": 1500,
+      "confusion_matrix_[0.25,0.5,0.75,dense]": [
+        [
+          1064,
+          0,
+          0,
+          4
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ],
+        [
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          262,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    "10": {
+      "class_counts": {
+        "0.25": 3561,
+        "0.50": 411,
+        "0.75": 151,
+        "dense": 877
+      },
+      "probe_accuracy": 0.7126666666666667,
+      "probe_balanced_accuracy": 0.25166705828740693,
+      "probe_balanced_weight_accuracy": 0.452,
+      "probe_balanced_weight_balanced_accuracy": 0.31967705299995264,
+      "majority_baseline_test": 0.712,
+      "majority_baseline_full": 0.7122,
+      "uniform_baseline": 0.25,
+      "stratified_split": true,
+      "n_test": 1500,
+      "confusion_matrix_[0.25,0.5,0.75,dense]": [
+        [
+          1067,
+          0,
+          0,
+          1
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ],
+        [
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          261,
+          0,
+          0,
+          2
+        ]
+      ]
+    }
+  }
+}

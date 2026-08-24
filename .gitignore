@@ -35,3 +35,8 @@ wandb/
 .DS_Store
 Thumbs.db
 .claude/
+
+# ── Thesis manuscript and working notes (kept out of the code repository) ──
+thesis_overleaf/
+extra/
+user_inputs.txt

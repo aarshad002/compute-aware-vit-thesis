@@ -1,6 +1,6 @@
-# Compute-Aware Vision Transformers: Adaptive Token Pruning for Efficient Inference
+# Adaptive Inference Study (RQ1)
 
-This repository contains the full research implementation for a Master's thesis on **compute-efficient Vision Transformers**. The central question is: can a ViT automatically decide, per image, how many tokens it actually needs — and skip the rest?
+This folder contains the first study of the thesis *Compute-Aware Vision Transformers: Adaptive Token Pruning for Efficient Inference*, the manually developed research implementation on **compute-efficient Vision Transformers**. The central question is: can a ViT automatically decide, per image, how many tokens it actually needs — and skip the rest?
 
 The work progresses from a dense baseline through static pruning, fixed-budget dynamic pruning, cascade inference, learned budget controllers, and a final rule-based controller, evaluated on both **CIFAR-100** and **ImageNet**.
 
