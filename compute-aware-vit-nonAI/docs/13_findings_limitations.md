@@ -5,14 +5,14 @@
 1. **L2-norm token scoring is an effective, training-free saliency signal.** Static
    pruning to 128/196 tokens costs only −0.66 pp on CIFAR-100; fixed-budget 75%
    costs −0.42 pp zero-shot on ImageNet. High-L2 mid-network tokens carry most of the
-   classification signal. ([07](07_static_token_pruning.md), [08](08_fixed_budget_dynamic_pruning.md))
+   classification signal. (07, 08)
 
 2. **The 50% budget is the best single CIFAR-100 operating point** — 78.18% (97.9% of
-   dense accuracy) at −24.2% FLOPs and +29% throughput. ([08](08_fixed_budget_dynamic_pruning.md))
+   dense accuracy) at −24.2% FLOPs and +29% throughput. (08)
 
 3. **Cascade inference improves CIFAR-100 accuracy above the dense model** (+2.09 pp,
    81.82%) by acting as a confidence-gated selective ensemble; on ImageNet it matches
-   dense accuracy exactly. ([09](09_cascade_inference.md))
+   dense accuracy exactly. (09)
 
 4. **The learned controller failed across every strategy** — Gumbel-softmax,
    supervised CE, class-weighted CE, focal loss, distillation, and split labels all
@@ -23,11 +23,11 @@
 
 5. **The rule-based controller is the practical winner** — zero training, −0.04 pp
    ImageNet accuracy, runs the backbone once, and beat every trained controller.
-   ([11](11_rule_based_controller.md))
+   (11)
 
 6. **ImageNet is harder to compress than CIFAR-100.** The already-optimised pretrained
    DeiT-Small degrades far faster under aggressive zero-shot pruning (25% budget:
-   −8.41 pp on ImageNet vs −3.90 pp on fine-tuned CIFAR-100). ([08](08_fixed_budget_dynamic_pruning.md))
+   −8.41 pp on ImageNet vs −3.90 pp on fine-tuned CIFAR-100). (08)
 
 ## Answer to RQ1
 
@@ -56,24 +56,24 @@ were confirmed by reading the source and the result files.
    stages that physically ran. True per-image cost = sum of all stages up to exit.
    ⇒ Present cascade efficiency as "exit-stage FLOPs (oracle lower bound)" or
    recompute cumulatively. Accuracy numbers are unaffected.
-   ([09](09_cascade_inference.md))
+   (09)
 
 2. **Rule-controller FLOPs are hardcoded approximations**, not fvcore-measured
    (`{0.25:3.80, 0.50:3.94, 0.75:4.08}` G). Fixed-budget and cascade ImageNet FLOPs
-   *are* fvcore-measured. ([11](11_rule_based_controller.md))
+   *are* fvcore-measured. (11)
 
 3. **Dynamic budgeting is per-batch unless `batch_size=1`.** `predict_keep_ratio`
    selects the budget from `budget_indices[0]` (the first sample), and the rule uses
    batch-mean confidence. So with `batch_size>1` all images in a batch share one
    budget. CIFAR cascade and label building use `batch_size=1` (correct per-image);
    the ImageNet rule sweep uses `batch_size=32` (per-batch approximation), and
-   `gumbel_v2` used `batch_size=32`. ([03](03_models_code_walkthrough.md))
+   `gumbel_v2` used `batch_size=32`. (03)
 
 4. **`forward_controller_only` has a dimension inconsistency in the current code** —
    it feeds the 192-dim CLS vector into a controller built for `input_dim=12`. The
    saved supervised-controller results predate the current state of that function.
    The fixed-ratio path used by the cascade/oracle building is unaffected.
-   ([03](03_models_code_walkthrough.md))
+   (03)
 
 5. **Supervised-controller `best_val_acc` is budget-prediction accuracy, not image
    accuracy.** The recurring 0.7583 equals the val majority-class frequency (75.8%
@@ -86,10 +86,10 @@ were confirmed by reading the source and the result files.
 
 7. **CIFAR normalisation uses mean/std 0.5, not ImageNet stats**, and CIFAR is
    upsampled 32→224. Internally consistent (train and eval match, model is fine-tuned
-   under it) but a deviation from the ImageNet path. ([05](05_datasets_preprocessing.md))
+   under it) but a deviation from the ImageNet path. (05)
 
 8. **timm version is 1.0.26** (frozen env), not "0.9.x" as the repo README states.
-   ([00](00_environment_setup.md))
+   (00)
 
 ## Suggested future work (flows from the negative result)
 

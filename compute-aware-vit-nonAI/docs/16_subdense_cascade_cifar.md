@@ -1,7 +1,7 @@
 # 16 — Sub-Dense Cascade 10→25→50 on CIFAR-100 (Professor's experiment)
 
 Follow-up requested by the supervisor after the cumulative-FLOPs correction
-([13](13_findings_limitations.md), [09](09_cascade_inference.md)). Idea: instead of
+([13](13_findings_limitations.md), 09). Idea: instead of
 forcing the old 25→50→75→dense cascade to claim savings, switch to a **sub-dense
 budget set** whose top stage is 50%, so there is no dense fallback. The goal is
 reframed to: *what is the best accuracy achievable under a strict sub-dense compute

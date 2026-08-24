@@ -1,4 +1,4 @@
-# Compute-Aware Vision Transformers: Adaptive Token Pruning for Efficient Inference
+# Compute-Aware Vision Transformers: Adaptive Inference and AI-Assisted Research Development
 
 | | |
 |---|---|
@@ -565,3 +565,8 @@ granted. If you build on this work, please cite the thesis:
 This thesis was carried out under the supervision of **Decebal Constantin Mocanu** and
 with the guidance of advisor **Boqian Wu**, at the University of Luxembourg. Experiments
 were run on the University of Luxembourg HPC (ULHPC) cluster.
+
+Claude Code was used as the AI coding assistant for Part II, the AI-Assisted
+Development Study, in which it is also the assistant under examination. Part I
+was developed manually. All technical decisions, experimental validation and
+interpretation remain the author's responsibility.

@@ -105,7 +105,7 @@ budget on this dataset.
 - **On ImageNet, the cascade is the wrong tool.** A single well-chosen static budget
   (fixed-75% at layer 3: 79.12% at 82% of dense compute, one forward pass) is more
   efficient than confidence-gated escalation, at either prune layer.
-- **The cascade only pays off on CIFAR-100** ([09](09_cascade_inference.md)), where
+- **The cascade only pays off on CIFAR-100** (09), where
   images are easy and the models are fine-tuned, so ~82% of images exit at the cheap
   25% stage.
 - **General principle:** adaptive cascading saves compute only when a large fraction

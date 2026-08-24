@@ -39,12 +39,12 @@ which together form a progression of increasing ambition:
 
 | # | Strategy | Proposal element it realises | Doc |
 |---|----------|------------------------------|-----|
-| 1 | **Dense baseline** | Upper-bound reference (§3.1) | [06](06_dense_baseline.md) |
-| 2 | **Static token pruning** | Static fixed-K baseline (§2.2, §4 baselines) | [07](07_static_token_pruning.md) |
-| 3 | **Fixed-budget dynamic pruning** | The four discrete budgets as separate models / oracles (§3.3) | [08](08_fixed_budget_dynamic_pruning.md) |
-| 4 | **Cascade inference** | Confidence-based dynamic allocation; heuristic dynamic-pruning baseline (§4) | [09](09_cascade_inference.md) |
+| 1 | **Dense baseline** | Upper-bound reference (§3.1) | 06 |
+| 2 | **Static token pruning** | Static fixed-K baseline (§2.2, §4 baselines) | 07 |
+| 3 | **Fixed-budget dynamic pruning** | The four discrete budgets as separate models / oracles (§3.3) | 08 |
+| 4 | **Cascade inference** | Confidence-based dynamic allocation; heuristic dynamic-pruning baseline (§4) | 09 |
 | 5a | **Learned budget controller** | The proposed controller / SLM idea — MLP over 12 structured signals (§3.3) | [10](10_learned_budget_controller.md) |
-| 5b | **Rule-based controller** | Zero-parameter confidence-threshold allocator (strong baseline) | [11](11_rule_based_controller.md) |
+| 5b | **Rule-based controller** | Zero-parameter confidence-threshold allocator (strong baseline) | 11 |
 
 ### Differences from the proposal worth noting in the thesis
 
@@ -69,4 +69,4 @@ which together form a progression of increasing ambition:
 5. **Token budgets are applied per-batch, effectively per-first-sample, in the
    dynamic model** unless `batch_size = 1`. True per-image budgeting requires
    `batch_size = 1`. This is a structural property of the forward pass and is
-   detailed in [03_models_code_walkthrough.md](03_models_code_walkthrough.md).
+   detailed in 03_models_code_walkthrough.md.

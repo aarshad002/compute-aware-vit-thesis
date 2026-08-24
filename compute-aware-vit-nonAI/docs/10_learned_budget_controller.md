@@ -10,7 +10,7 @@ This is documented faithfully below with the per-epoch evidence.
 
 A 3-layer MLP attached at layer 6 of `DynamicPrunedViT`
 (`12 → 64 → 64 → num_budgets`), fed the **12-dimensional** feature vector described
-in [03_models_code_walkthrough.md](03_models_code_walkthrough.md) (8 token-score stats
+in 03_models_code_walkthrough.md (8 token-score stats
 + 4 CLS/classification-confidence features). Output = logits over the budget options.
 
 Two distinct training paradigms were tried: **Gumbel-softmax end-to-end** and
@@ -23,7 +23,7 @@ Two distinct training paradigms were tried: **Gumbel-softmax end-to-end** and
 Straight-through Gumbel-softmax makes the discrete budget choice differentiable.
 Loss = `CE + loss_weight × budget_penalty (+ distill)`, where
 `budget_penalty = mean(expected_keep_ratio × (1 − confidence))`
-(see [04](04_training_data_utils_walkthrough.md)).
+(see 04).
 
 ### `gumbel_v1` (`dynamic_ctrl_gumbel_v1.yaml`, batch_size=1, 3 budgets, 5 epochs)
 Run `dynamic_ctrl_gumbel_v1_20260420_110650`, best val acc **61.16%**.
@@ -46,7 +46,7 @@ controller with a stronger penalty (`loss_weight=0.1`, `lr=1e-3`). Run
 Every epoch: **val budget counts = [10000, 0, 0, 0]** — total collapse to 25%, val
 accuracy frozen at 74.14% for all 10 epochs. (With batch_size=32 the budget is also
 shared across each batch — see the batch-size caveat in
-[03](03_models_code_walkthrough.md).)
+03.)
 
 ### `e2e_v2` (`dynamic_ctrl_e2e_v1.yaml`, distillation + val-split, 20 epochs)
 Adds a dense **distillation teacher** (`distillation_weight=0.5`, `T=4`) and trains on
@@ -138,5 +138,5 @@ compute an image needs.
 **Conclusion:** budget collapse here is a *fundamental* problem of signal and label
 distribution, not a hyperparameter that was left untuned. This negative result
 directly motivates the zero-parameter rule controller in
-[11_rule_based_controller.md](11_rule_based_controller.md), which sidesteps learning
+11_rule_based_controller.md, which sidesteps learning
 entirely.
